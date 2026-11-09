@@ -614,6 +614,8 @@
       state.customPresets.forEach((preset, index) => {
         const row = document.createElement('div');
         row.className = 'modal-preset-row';
+        row.draggable = true;
+        row.dataset.index = index;
 
         const swatch = document.createElement('div');
         swatch.className = 'modal-preset-swatch';
@@ -631,18 +633,56 @@
         const delBtn = document.createElement('button');
         delBtn.className = 'modal-preset-del-btn';
         delBtn.setAttribute('aria-label', 'Elimina preset');
-        delBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+        delBtn.textContent = 'Elimina';
         delBtn.addEventListener('click', () => {
           state.customPresets.splice(index, 1);
           localStorage.setItem('tapo_custom_presets', JSON.stringify(state.customPresets));
           renderCustomPresets();
+          renderModalPresetList();
           showToast('Preset eliminato');
         });
 
-        row.appendChild(swatch);
-        row.appendChild(label);
+        const content = document.createElement('div');
+        content.className = 'modal-preset-row-content';
+        content.appendChild(swatch);
+        content.appendChild(label);
         row.appendChild(delBtn);
+        row.appendChild(content);
         listEl.appendChild(row);
+
+        let startX = 0;
+        let revealed = false;
+        row.addEventListener('pointerdown', (event) => {
+          startX = event.clientX;
+          row.setPointerCapture(event.pointerId);
+        });
+        row.addEventListener('pointerup', (event) => {
+          const deltaX = event.clientX - startX;
+          if (deltaX < -45) {
+            row.classList.add('is-revealed');
+            revealed = true;
+          } else if (deltaX > 25 || (Math.abs(deltaX) < 10 && revealed)) {
+            row.classList.remove('is-revealed');
+            revealed = false;
+          }
+        });
+        row.addEventListener('dragstart', (event) => {
+          event.dataTransfer.setData('text/plain', String(index));
+          row.classList.add('is-dragging');
+        });
+        row.addEventListener('dragend', () => row.classList.remove('is-dragging'));
+        row.addEventListener('dragover', (event) => event.preventDefault());
+        row.addEventListener('drop', (event) => {
+          event.preventDefault();
+          const from = Number(event.dataTransfer.getData('text/plain'));
+          const to = Number(row.dataset.index);
+          if (!Number.isInteger(from) || from === to) return;
+          const [moved] = state.customPresets.splice(from, 1);
+          state.customPresets.splice(to, 0, moved);
+          localStorage.setItem('tapo_custom_presets', JSON.stringify(state.customPresets));
+          renderCustomPresets();
+          renderModalPresetList();
+        });
       });
     }
   }

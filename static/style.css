@@ -1613,13 +1613,41 @@ html, body {
 }
 
 .modal-preset-row {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  background-color: #222226;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.modal-preset-row:active {
+  cursor: grabbing;
+}
+
+.modal-preset-row-content {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 12px;
-  background-color: #222226;
-  border-radius: 12px;
+  width: 100%;
+  min-height: 52px;
   padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: #222226;
+  transition: transform 0.2s ease;
+}
+
+.modal-preset-row.is-revealed .modal-preset-row-content {
+  transform: translateX(-82px);
+}
+
+.modal-preset-row.is-dragging {
+  opacity: 0.55;
 }
 
 .modal-preset-swatch {
@@ -1640,23 +1668,23 @@ html, body {
 }
 
 .modal-preset-del-btn {
+  position: absolute;
+  inset: 0 0 0 auto;
+  z-index: 0;
+  width: 82px;
   flex-shrink: 0;
-  background: transparent;
+  background: #ef4444;
   border: none;
-  color: #71717a;
+  color: #ffffff;
   cursor: pointer;
-  display: flex;
+  display: grid;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease;
 }
 
 .modal-preset-del-btn:active {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background-color: #dc2626;
 }
 
 .modal-clear-btn {
