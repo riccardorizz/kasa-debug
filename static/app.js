@@ -51,7 +51,6 @@
     viewMain: document.getElementById('view-main'),
     viewSettings: document.getElementById('view-settings'),
     btnSettings: document.getElementById('btn-settings'),
-    btnBackHome: document.getElementById('btn-back-home'),
 
     // Hero Section
     ambientGlow: document.getElementById('ambient-glow'),
@@ -109,12 +108,10 @@
     settingValueDefaultState: null,
     settingRowFade: null,
     settingValueFade: null,
-    settingRowGroups: document.getElementById('setting-row-groups'),
     settingRowSmartActions: null,
     settingRowInfo: document.getElementById('setting-row-info'),
     settingRowMatter: null,
     settingRowFirmware: null,
-    btnRemoveDevice: document.getElementById('btn-remove-device'),
     rowShareDevice: null,
 
     // Subview: Icon Picker
@@ -421,7 +418,6 @@
       el.tempThumb.style.left = `${pct}%`;
       if (!state.isUserInteracting) el.tempInput.value = temp;
     } else {
-      el.whiteTempIndicator.style.opacity = '0';
       const hue = (state.hsv && typeof state.hsv.hue === 'number') ? state.hsv.hue : 180;
       const pct = Math.max(0, Math.min(100, (hue / 360) * 100));
       el.colorThumb.style.left = `${pct}%`;
@@ -939,12 +935,6 @@
       });
     });
 
-    if (el.btnBackHome) {
-      el.btnBackHome.addEventListener('click', () => {
-        showToast('Schermata principale');
-      });
-    }
-
     // 2. Open Settings View
     if (el.btnSettings) {
       el.btnSettings.addEventListener('click', () => {
@@ -992,27 +982,6 @@
     }
 
     // (Removed sections: 2x2 grid, smart actions home card, footer menu)
-
-    if (el.btnRemoveDevice) {
-      el.btnRemoveDevice.addEventListener('click', () => {
-        if (confirm('Vuoi rimuovere questo dispositivo e resettare le impostazioni locali della PWA?')) {
-          localStorage.removeItem('tapo_device_name');
-          localStorage.removeItem('tapo_device_location');
-          localStorage.removeItem('tapo_device_icon');
-          localStorage.removeItem('tapo_default_on');
-          localStorage.removeItem('tapo_default_recovery');
-          localStorage.removeItem('tapo_fade_on');
-          localStorage.removeItem('tapo_fade_off');
-          localStorage.removeItem('tapo_custom_presets');
-          state.deviceName = 'Lampadina Smart';
-          state.deviceLocation = 'Camera da letto';
-          state.deviceIcon = 'bulb';
-          applyDeviceCustomizations();
-          showToast('Dispositivo e personalizzazioni locali resettati.');
-          showView('view-main', false);
-        }
-      });
-    }
 
     // 4. Subview: Icon Picker
     if (el.iconPickerGrid) {

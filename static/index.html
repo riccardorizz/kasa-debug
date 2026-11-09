@@ -30,11 +30,7 @@
 
       <!-- Header navigation bar -->
       <header class="top-nav">
-        <button class="nav-btn" id="btn-back-home" aria-label="Torna indietro">
-          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
+        <div class="nav-btn-placeholder" aria-hidden="true"></div>
 
         <div class="top-nav-actions">
           <button class="nav-btn settings-btn" id="btn-settings" aria-label="Impostazioni">
@@ -42,7 +38,6 @@
               <polygon points="12 2.5 20.2 7.2 20.2 16.8 12 21.5 3.8 16.8 3.8 7.2"></polygon>
               <circle cx="12" cy="12" r="3.2"></circle>
             </svg>
-            <span class="notification-badge"></span>
           </button>
         </div>
       </header>
@@ -119,13 +114,8 @@
           <section class="card presets-card">
             <div class="presets-header-row">
               <h2 class="card-subtitle">Mio Preset</h2>
-              <span class="preset-tip-hint">Tocca per applicare</span>
             </div>
             <div class="preset-scroll-row" id="preset-list">
-              <!-- Preset A (Auto) -->
-              <button class="preset-item preset-auto" data-preset="auto" title="Auto (4000K)">
-                <span class="preset-a-letter">A</span>
-              </button>
               <!-- Built-in Swatches -->
               <button class="preset-item preset-color" data-type="temp" data-val="2700" style="--swatch-color: #f5d19e;" title="Caldo 2700K"></button>
               <button class="preset-item preset-color" data-type="temp" data-val="3200" style="--swatch-color: #fde2b6;" title="Caldo 3200K"></button>
@@ -258,19 +248,6 @@
 
         <!-- Group 2: Advanced -->
         <section class="card settings-group">
-          <!-- Gruppi -->
-          <div class="menu-list-row clickable-row" id="setting-row-groups">
-            <span class="menu-label">Gruppi</span>
-            <div class="menu-right-meta">
-              <span class="setting-value-text">0</span>
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </div>
-          </div>
-
-          <div class="menu-divider"></div>
-
           <!-- Informazioni Dispositivo -->
           <div class="menu-list-row clickable-row" id="setting-row-info">
             <span class="menu-label">Informazioni Dispositivo</span>
@@ -282,8 +259,6 @@
           </div>
         </section>
 
-        <!-- Danger Zone Button: Rimuovi -->
-        <button class="remove-device-btn" id="btn-remove-device">Rimuovi</button>
       </div>
     </div><!-- End #view-settings -->
 
@@ -647,71 +622,6 @@
       </div>
     </div><!-- End #view-fade -->
 
-
-    <!-- ====================================================================
-         VIEW: GRUPPI (Picture 8)
-         ==================================================================== -->
-    <div id="view-groups" class="app-view">
-      <header class="sub-nav">
-        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
-        <h2 class="sub-nav-title">Gruppi</h2>
-        <div class="nav-btn-placeholder"></div>
-      </header>
-
-      <div class="sub-view-content groups-content-center">
-        <p class="view-intro-hint align-center">Aggiungi i tuoi dispositivi a un gruppo e controllali contemporaneamente. Ogni dispositivo sarà comunque controllabile anche individualmente.</p>
-
-        <!-- Bubble Artwork Reproduction from Picture 8 -->
-        <div class="groups-art-container">
-          <div class="art-bubble bubble-left">
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="#ffffff">
-              <polygon points="7 14 17 14 15 7 9 7"/>
-              <line x1="12" y1="14" x2="12" y2="20" stroke="#ffffff" stroke-width="2"/>
-              <rect x="9" y="20" width="6" height="1.5" rx="0.5"/>
-            </svg>
-          </div>
-          <div class="art-bubble bubble-center">
-            <!-- Outlet & Switch icons -->
-            <div class="bubble-inner-icons">
-              <div class="mini-wall-socket">
-                <span></span><span></span>
-              </div>
-              <div class="mini-wall-switch">
-                <div class="switch-dot"></div>
-              </div>
-            </div>
-          </div>
-          <div class="art-bubble bubble-right">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="#fed776">
-              <path d="M12 3a6 6 0 0 0-6 6c0 2.2 1.2 4.1 3 5.1V16a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.9c1.8-1 3-2.9 3-5.1a6 6 0 0 0-6-6z"/>
-            </svg>
-          </div>
-          <div class="art-bubble bubble-tiny"></div>
-        </div>
-
-        <p class="groups-empty-text">Questo dispositivo non è stato aggiunto a nessun gruppo.</p>
-
-        <!-- Tapo official app hint pill -->
-        <div class="cloud-app-tag-pill">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
-          </svg>
-          <span>Gestito da Cloud Tapo</span>
-        </div>
-
-        <button class="dark-pill-action-btn" id="btn-add-group">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          <span>Aggiungi un gruppo</span>
-        </button>
-      </div>
-    </div><!-- End #view-groups -->
 
 
     <!-- ====================================================================
