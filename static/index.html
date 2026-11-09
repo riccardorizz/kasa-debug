@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Test lampadina Tapo</title>
+  </head>
+  <body>
+    <h1>Test lampadina Tapo</h1>
+
+    <button id="refresh">Leggi stato</button>
+    <button data-power="true">Accendi</button>
+    <button data-power="false">Spegni</button>
+
+    <h2>Luminosità</h2>
+    <input id="brightness" type="number" min="0" max="100" value="50">
+    <button id="set-brightness">Imposta luminosità</button>
+
+    <h2>Temperatura colore (K)</h2>
+    <input id="temperature" type="number" min="2500" max="6500" value="4000">
+    <button id="set-temperature">Imposta temperatura</button>
+
+    <h2>Colore HSV</h2>
+    <label>Hue <input id="hue" type="number" min="0" max="360" value="180"></label>
+    <label>Saturation <input id="saturation" type="number" min="0" max="100" value="100"></label>
+    <label>Value <input id="value" type="number" min="0" max="100" value="100"></label>
+    <button id="set-color">Imposta colore</button>
+
+    <pre id="result">In attesa…</pre>
+    <script>
+      const result = document.querySelector("#result");
+
+      async function callApi(path, options = {}) {
+        result.textContent = "Richiesta in corso…";
+        try {
+          const response = await fetch(path, options);
+          const body = await response.json();
+          result.textContent = JSON.stringify(
+            { status: response.status, ...body },
+            null,
+            2
+          );
+        } catch (error) {
+          result.textContent = String(error);
+        }
+      }
+
+      document.querySelector("#refresh").addEventListener("click", () => {
+        callApi("/api/state");
+      });
+
+      document.querySelectorAll("[data-power]").forEach((button) => {
+        button.addEventListener("click", () => {
+          callApi(`/api/power/${button.dataset.power}`, { method: "POST" });
+        });
+      });
+
+      document.querySelector("#set-brightness").addEventListener("click", () => {
+        callApi(`/api/brightness/${document.querySelector("#brightness").value}`, {
+          method: "POST",
+        });
+      });
+
+      document.querySelector("#set-temperature").addEventListener("click", () => {
+        callApi(`/api/temp/${document.querySelector("#temperature").value}`, {
+          method: "POST",
+        });
+      });
+
+      document.querySelector("#set-color").addEventListener("click", () => {
+        const color = Object.fromEntries(
+          ["hue", "saturation", "value"].map((key) => [
+            key,
+            Number(document.querySelector(`#${key}`).value),
+          ])
+        );
+        callApi("/api/color", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(color),
+        });
+      });
+
+      callApi("/api/state");
+    </script>
+  </body>
+</html>
