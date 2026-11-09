@@ -116,18 +116,10 @@
               <h2 class="card-subtitle">Mio Preset</h2>
             </div>
             <div class="preset-scroll-row" id="preset-list">
-              <!-- Built-in Swatches -->
-              <button class="preset-item preset-color" data-type="temp" data-val="2700" style="--swatch-color: #f5d19e;" title="Caldo 2700K"></button>
-              <button class="preset-item preset-color" data-type="temp" data-val="3200" style="--swatch-color: #fde2b6;" title="Caldo 3200K"></button>
-              <button class="preset-item preset-color" data-type="temp" data-val="3800" style="--swatch-color: #fbe0be;" title="Naturale 3800K"></button>
-              <button class="preset-item preset-color" data-type="temp" data-val="5000" style="--swatch-color: #fff2e0;" title="Freddo 5000K"></button>
-              <button class="preset-item preset-color" data-type="color" data-hue="275" style="--swatch-color: #a824f8;" title="Viola"></button>
-              <button class="preset-item preset-color" data-type="color" data-hue="55" style="--swatch-color: #fef043;" title="Giallo"></button>
-              
-              <!-- Custom User Presets rendered dynamically here -->
-              <div id="custom-presets-container" class="custom-presets-container"></div>
+              <!-- Preset Swatches rendered dynamically here -->
+              <div id="preset-swatches-container" class="preset-swatches-container"></div>
 
-              <!-- Manage Presets Button (edit/clear) -->
+              <!-- Manage Presets Button (opens 1.jpeg) -->
               <button class="preset-item preset-add-btn" id="btn-manage-presets" title="Gestisci preset" aria-label="Gestisci preset">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -720,24 +712,6 @@
             <span class="menu-label">Indirizzo MAC</span>
             <span class="setting-value-text" id="info-device-mac">B0-19-21-8A-6B-D0</span>
           </div>
-          <div class="menu-divider"></div>
-
-          <div class="menu-list-row">
-            <span class="menu-label">Versione Hardware</span>
-            <span class="setting-value-text" id="info-device-hw">1.0</span>
-          </div>
-          <div class="menu-divider"></div>
-
-          <div class="menu-list-row">
-            <span class="menu-label">Segnale Wi-Fi</span>
-            <span class="setting-value-text text-green" id="info-device-rssi">-52 dBm (Eccellente)</span>
-          </div>
-          <div class="menu-divider"></div>
-
-          <div class="menu-list-row">
-            <span class="menu-label">Protocollo di rete</span>
-            <span class="setting-value-text">Tapo KLAP + Matter</span>
-          </div>
         </section>
       </div>
     </div><!-- End #view-device-info -->
@@ -879,19 +853,133 @@
 
 
     <!-- ====================================================================
+         VIEW: GESTISCI PRESET (immagine 1 — lista preset)
+         ==================================================================== -->
+    <div id="view-manage-presets" class="app-view">
+      <header class="sub-nav preset-list-nav">
+        <button class="nav-btn btn-view-back" data-target="view-main" aria-label="Indietro">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <h2 class="sub-nav-title">Preset</h2>
+        <button class="nav-text-btn" id="btn-preset-riordina">Riordina</button>
+      </header>
+
+      <div class="sub-view-content">
+        <section class="card settings-group preset-manage-card" id="preset-manage-list-card">
+          <!-- preset rows rendered dynamically -->
+        </section>
+
+        <div class="preset-manage-actions">
+          <button type="button" class="btn-add-preset" id="btn-add-preset">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Nuovo Preset</span>
+          </button>
+        </div>
+      </div>
+    </div><!-- End #view-manage-presets -->
+
+
+    <!-- ====================================================================
+         VIEW: EDITA PRESET (immagini 2 e 3 — colore o luce bianca)
+         ==================================================================== -->
+    <div id="view-edit-preset" class="app-view">
+      <header class="sub-nav edit-preset-nav">
+        <div class="nav-placeholder"></div>
+        <h2 class="sub-nav-title">Edita Preset</h2>
+        <button class="nav-text-btn font-semibold" id="btn-edit-preset-done">Fatto</button>
+      </header>
+
+      <div class="sub-view-content">
+        <!-- Color indicator card -->
+        <div class="card edit-preset-color-card">
+          <!-- Label + current color/temp -->
+          <div class="edit-preset-color-label" id="edit-preset-color-label">Colore</div>
+          <div class="edit-preset-color-row">
+            <div class="edit-preset-swatch" id="edit-preset-swatch"></div>
+            <div class="edit-preset-color-value-wrap" id="edit-preset-color-value-wrap">
+              <span class="edit-preset-hash" id="edit-preset-hash"># </span>
+              <input type="text" id="edit-preset-hex-input" class="edit-preset-hex-input" maxlength="6" value="FF00FF" spellcheck="false" autocomplete="off" autocapitalize="characters" aria-label="Codice esadecimale colore">
+              <div class="edit-preset-temp-wrap hidden" id="edit-preset-temp-wrap">
+                <input type="number" id="edit-preset-temp-input" class="edit-preset-temp-input" min="2500" max="6500" step="50" value="2700" aria-label="Temperatura colore Kelvin">
+                <span class="edit-preset-temp-unit">K</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Luce Bianca / Colore tab switcher -->
+          <div class="edit-preset-tabs">
+            <button class="edit-preset-tab" id="ep-tab-white" type="button">Luce Bianca</button>
+            <button class="edit-preset-tab active" id="ep-tab-color" type="button">Colore</button>
+          </div>
+
+          <!-- Color Wheel (shown for color mode, Image 2) -->
+          <div id="ep-color-wheel-wrap" class="ep-wheel-wrap">
+            <canvas id="ep-color-wheel" class="ep-color-wheel-canvas" width="300" height="300"></canvas>
+            <div class="ep-wheel-thumb" id="ep-wheel-thumb"></div>
+          </div>
+
+          <!-- Temperature Circle (shown for white mode, Image 3) -->
+          <div id="ep-temp-wheel-wrap" class="ep-wheel-wrap hidden">
+            <canvas id="ep-temp-wheel" class="ep-temp-wheel-canvas" width="300" height="300"></canvas>
+            <div class="ep-temp-ticks" id="ep-temp-ticks">
+              <span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span>
+            </div>
+            <div class="ep-temp-thumb" id="ep-temp-thumb"></div>
+          </div>
+        </div>
+
+        <!-- Brightness Card -->
+        <div class="card edit-preset-brightness-card">
+          <div class="edit-preset-bright-header">
+            <span class="edit-preset-bright-title">Luminosità</span>
+            <span class="edit-preset-bright-value" id="ep-brightness-label">100%</span>
+          </div>
+          <div class="ep-brightness-slider-wrapper" id="ep-brightness-wrapper">
+            <div class="ep-brightness-track" id="ep-brightness-track">
+              <div class="ep-brightness-fill" id="ep-brightness-fill" style="width: 100%;"></div>
+              <div class="ep-brightness-thumb" id="ep-brightness-thumb" style="left: 100%;"></div>
+            </div>
+            <input type="range" id="ep-brightness-input" min="1" max="100" value="100" class="accessible-range" aria-label="Regola luminosità preset">
+          </div>
+        </div>
+
+        <!-- Delete Preset Button -->
+        <button type="button" class="btn-delete-preset" id="btn-delete-preset">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+          <span>Elimina Preset</span>
+        </button>
+      </div>
+    </div><!-- End #view-edit-preset -->
+
+
+    <!-- ====================================================================
          MODAL: GESTISCI PRESET (Manage / Add / Clear)
          ==================================================================== -->
-    <div id="modal-custom-preset" class="native-modal-backdrop hidden">
-      <div class="native-modal-sheet">
+    <div id="modal-custom-preset" class="preset-screen hidden">
+      <div class="preset-screen-panel">
         <div class="modal-drag-bar"></div>
         <div class="modal-header">
-          <h3 class="modal-title">Gestisci Preset</h3>
+          <div class="modal-heading">
+            <button class="modal-back-btn hidden" id="btn-back-preset-list" type="button" aria-label="Torna ai preset">&lsaquo;</button>
+            <h3 class="modal-title" id="modal-preset-title">Mio Preset</h3>
+          </div>
+          <button class="modal-new-btn" id="btn-new-preset" type="button">Nuovo</button>
           <button class="modal-close-btn" id="btn-close-preset-modal" aria-label="Chiudi">&times;</button>
         </div>
 
         <div class="modal-body">
-          <!-- Existing Custom Presets Management -->
-          <div id="modal-presets-manage-section">
+          <div id="modal-presets-list-view">
             <div class="modal-section-label">I tuoi preset personalizzati</div>
             <div id="modal-custom-presets-list" class="modal-custom-presets-list">
               <span class="modal-no-presets-hint" id="modal-no-presets-hint">Nessun preset personalizzato ancora.</span>
@@ -905,8 +993,8 @@
             </button>
           </div>
 
-          <div class="modal-section-divider"></div>
-          <div class="modal-section-label">Aggiungi nuovo preset</div>
+          <div id="modal-preset-editor-view" class="hidden">
+          <div class="modal-section-label" id="modal-editor-label">Crea un nuovo preset</div>
 
           <!-- Live Swatch Preview -->
           <div class="custom-preset-preview-wrap">
@@ -948,6 +1036,7 @@
           </div>
 
           <button class="modal-confirm-btn" id="btn-save-custom-preset">Aggiungi a Mio Preset</button>
+          </div>
         </div>
       </div>
     </div><!-- End #modal-custom-preset -->

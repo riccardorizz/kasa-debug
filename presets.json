@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Preset 1",
+    "type": "white",
+    "temp": 2700,
+    "brightness": 100
+  },
+  {
+    "name": "Preset 2",
+    "type": "white",
+    "temp": 3000,
+    "brightness": 100
+  },
+  {
+    "name": "Preset 3",
+    "type": "white",
+    "temp": 3300,
+    "brightness": 100
+  },
+  {
+    "name": "Preset 4",
+    "type": "white",
+    "temp": 3600,
+    "brightness": 100
+  },
+  {
+    "name": "Preset 5",
+    "type": "color",
+    "hue": 280,
+    "saturation": 100,
+    "brightness": 100
+  },
+  {
+    "name": "Preset 6",
+    "type": "color",
+    "hue": 55,
+    "saturation": 100,
+    "brightness": 100
+  },
+  {
+    "name": "Preset 7",
+    "type": "color",
+    "hue": 300,
+    "saturation": 100,
+    "brightness": 100
+  }
+]

@@ -1,5 +1,5 @@
 // Service Worker for Tapo Smart Bulb PWA
-const CACHE_NAME = 'tapo-bulb-v2';
+const CACHE_NAME = 'tapo-bulb-v3';
 const ASSETS = [
   '/',
   '/index.html',

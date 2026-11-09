@@ -6,7 +6,7 @@ venv/
 
 # Generated workspace and capture artifacts
 attachments/
-reference/
+design-reference/
 capture/
 inbox/
 investigation.cany/

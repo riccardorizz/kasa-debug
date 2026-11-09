@@ -41,6 +41,106 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
+.hidden {
+  display: none !important;
+}
+
+.preset-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  overflow-y: auto;
+  background: #000;
+  color: #fff;
+  padding: calc(22px + var(--safe-top)) 24px calc(28px + var(--safe-bottom));
+}
+
+.preset-screen-panel {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.preset-screen .modal-header {
+  margin: 12px 0 42px;
+}
+
+.preset-screen .modal-title {
+  font-size: 25px;
+}
+
+.preset-screen .modal-back-btn {
+  font-size: 42px;
+  color: #fff;
+}
+
+.preset-screen .modal-new-btn {
+  color: #fff;
+  font-size: 18px;
+}
+
+.preset-screen .modal-body {
+  padding: 0;
+}
+
+.preset-screen .modal-section-label {
+  text-transform: none;
+  font-size: 19px;
+  font-weight: 400;
+}
+
+.preset-screen .modal-custom-presets-list {
+  background: #242426;
+  border-radius: 20px;
+  overflow: hidden;
+  gap: 0;
+}
+
+.preset-screen .modal-preset-row {
+  min-height: 92px;
+  border: 0;
+  border-bottom: 1px solid #414143;
+  border-radius: 0;
+  background: #242426;
+}
+
+.preset-screen .modal-preset-row-content {
+  min-height: 92px;
+  padding: 16px 22px;
+  background: #242426;
+}
+
+.preset-screen .modal-preset-name {
+  font-size: 19px;
+}
+
+.preset-screen .modal-preset-swatch {
+  width: 34px;
+  height: 34px;
+}
+
+.preset-screen .modal-preset-del-btn {
+  height: 100%;
+}
+
+.preset-screen .modal-clear-btn {
+  margin-top: 20px;
+}
+
+.preset-screen-panel:has(#modal-preset-editor-view:not(.hidden)) > #modal-presets-list-view {
+  display: none;
+}
+
+.preset-screen .native-modal-sheet {
+  max-width: 760px;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.preset-screen .custom-preset-preview-wrap {
+  background: #303032;
+}
+
 /* Outer layout wrapper, mobile-first centered frame on large screens */
 .app-wrapper {
   position: relative;
@@ -1349,6 +1449,32 @@ html, body {
   margin-bottom: 16px;
 }
 
+.modal-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.modal-back-btn,
+.modal-new-btn {
+  border: none;
+  background: transparent;
+  color: var(--brand-blue);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.modal-back-btn {
+  font-size: 30px;
+  line-height: 20px;
+}
+
+.modal-new-btn {
+  margin-left: auto;
+  margin-right: 12px;
+}
+
 .modal-title {
   font-size: 18px;
   font-weight: 600;
@@ -1707,4 +1833,514 @@ html, body {
 
 .modal-clear-btn:active {
   background-color: rgba(239, 68, 68, 0.2);
+}
+
+
+/* ==========================================================================
+   VIEW: GESTISCI PRESET (immagine 1)
+   ========================================================================== */
+
+.preset-list-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 48px;
+}
+
+.preset-manage-card {
+  background: #1c1c1e !important;
+  border-radius: 16px !important;
+  margin: 16px !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Preset list rows — matching 1.jpeg */
+.preset-manage-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 68px;
+  padding: 13px 18px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+  user-select: none;
+  touch-action: pan-y;
+}
+
+.preset-manage-row:last-child {
+  border-bottom: none;
+}
+
+.preset-manage-row:active {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.preset-manage-row-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.preset-manage-row-name {
+  font-size: 15px;
+  font-weight: 400;
+  color: #8e8e93;
+  letter-spacing: -0.2px;
+}
+
+.preset-manage-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 400;
+  color: #ffffff;
+}
+
+.preset-meta-sun {
+  display: inline-flex;
+  align-items: center;
+  color: #ffffff;
+  stroke: #ffffff;
+  flex-shrink: 0;
+}
+
+.preset-meta-sep {
+  color: #8e8e93;
+  margin: 0 1px;
+  font-weight: 300;
+}
+
+.preset-manage-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: -1px;
+}
+
+.preset-manage-row-chevron {
+  color: #636366;
+  flex-shrink: 0;
+  margin-left: 10px;
+}
+
+.preset-manage-empty-hint {
+  padding: 24px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.preset-manage-del-btn {
+  display: none;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-right: 12px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.preset-manage-card.is-reordering .preset-manage-del-btn {
+  display: flex;
+}
+
+/* Reorder mode */
+.preset-manage-card.is-reordering .preset-manage-row-chevron {
+  display: none;
+}
+
+.preset-manage-actions {
+  padding: 8px 16px 24px;
+}
+
+.btn-add-preset {
+  width: 100%;
+  background: #1c1c1e;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  color: #38bdf8;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-add-preset:active {
+  background: #252528;
+}
+
+.preset-manage-drag-handle {
+  display: none;
+  color: #8e8e93;
+  margin-left: 10px;
+  cursor: grab;
+  padding: 6px;
+  touch-action: none;
+}
+
+.preset-manage-card.is-reordering .preset-manage-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preset-manage-row.is-dragging {
+  opacity: 0.45;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.preset-manage-row.drag-over {
+  border-top: 2px solid #3b82f6;
+}
+
+/* ==========================================================================
+   VIEW: EDITA PRESET (immagini 2 e 3)
+   ========================================================================== */
+
+.edit-preset-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 48px;
+}
+
+.nav-placeholder {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.font-semibold {
+  font-weight: 600 !important;
+}
+
+/* Color / Temp card */
+.edit-preset-color-card {
+  background: #1c1c1e !important;
+  border-radius: 16px !important;
+  margin: 16px !important;
+  padding: 18px 20px 24px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.edit-preset-color-label {
+  font-size: 14px;
+  color: #8e8e93;
+  font-weight: 400;
+  margin-bottom: 2px;
+}
+
+.edit-preset-color-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.edit-preset-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.edit-preset-color-value-wrap {
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.edit-preset-hash {
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 600;
+  white-space: pre;
+}
+
+.edit-preset-hex-input {
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  width: 120px;
+  padding: 1px 4px;
+  outline: none;
+  font-family: inherit;
+  text-transform: uppercase;
+  transition: background-color 0.15s ease;
+}
+
+.edit-preset-hex-input:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.edit-preset-temp-wrap {
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.edit-preset-temp-input {
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  width: 68px;
+  padding: 1px 4px;
+  outline: none;
+  font-family: inherit;
+  transition: background-color 0.15s ease;
+  -moz-appearance: textfield;
+}
+
+.edit-preset-temp-input::-webkit-outer-spin-button,
+.edit-preset-temp-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.edit-preset-temp-input:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.edit-preset-temp-unit {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Tabs: Luce Bianca / Colore (matching segmented pill in 2.jpeg/3.jpeg) */
+.edit-preset-tabs {
+  display: flex;
+  background-color: #2c2c2e;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+  margin-bottom: 18px;
+}
+
+.edit-preset-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #8e8e93;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  text-align: center;
+}
+
+.edit-preset-tab.active {
+  background-color: #545458;
+  color: #ffffff;
+}
+
+/* Color / Temp Wheel Container */
+.ep-wheel-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: 6px auto;
+  width: 280px;
+  height: 280px;
+  max-width: calc(100% - 16px);
+  aspect-ratio: 1;
+  touch-action: none;
+}
+
+.ep-color-wheel-canvas,
+.ep-temp-wheel-canvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+/* Thumb on color wheel */
+.ep-wheel-thumb {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
+  transition: none;
+}
+
+/* Tick marks on temperature wheel — 7 horizontal lines */
+.ep-temp-ticks {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  pointer-events: none;
+  padding: 34px 0;
+}
+
+.ep-temp-ticks span {
+  display: block;
+  width: 52px;
+  height: 1.5px;
+  background: rgba(140, 140, 150, 0.45);
+  border-radius: 1px;
+}
+
+/* Temperature Thumb */
+.ep-temp-thumb {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: none;
+}
+
+/* Brightness card in edit view (matching 2.jpeg/3.jpeg bottom card) */
+.edit-preset-brightness-card {
+  background: #1c1c1e !important;
+  border-radius: 16px !important;
+  margin: 16px !important;
+  padding: 18px 20px 22px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.edit-preset-bright-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.edit-preset-bright-title {
+  font-size: 16px;
+  font-weight: 400;
+  color: #ffffff;
+}
+
+.edit-preset-bright-value {
+  font-size: 16px;
+  font-weight: 400;
+  color: #8e8e93;
+}
+
+.ep-brightness-slider-wrapper {
+  position: relative;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.ep-brightness-track {
+  width: 100%;
+  height: 5px;
+  background: #3a3a3c;
+  border-radius: 2.5px;
+  position: relative;
+}
+
+.ep-brightness-fill {
+  height: 100%;
+  background: #ff9f0a;
+  border-radius: 2.5px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+.ep-brightness-thumb {
+  position: absolute;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Preset swatches container on main screen */
+.preset-swatches-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Delete Preset Button */
+.btn-delete-preset {
+  width: calc(100% - 32px);
+  margin: 12px 16px 28px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 14px;
+  color: #ef4444;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.btn-delete-preset:active {
+  background: rgba(239, 68, 68, 0.2);
 }

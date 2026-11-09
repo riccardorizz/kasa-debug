@@ -10,6 +10,16 @@
   // ==========================================================================
   // App State & Persistent Preferences
   // ==========================================================================
+  const DEFAULT_PRESETS = [
+    { name: 'Preset 1', type: 'white', temp: 2700, brightness: 100 },
+    { name: 'Preset 2', type: 'white', temp: 3000, brightness: 100 },
+    { name: 'Preset 3', type: 'white', temp: 3300, brightness: 100 },
+    { name: 'Preset 4', type: 'white', temp: 3600, brightness: 100 },
+    { name: 'Preset 5', type: 'color', hue: 280, saturation: 100, brightness: 100 },
+    { name: 'Preset 6', type: 'color', hue: 55, saturation: 100, brightness: 100 },
+    { name: 'Preset 7', type: 'color', hue: 300, saturation: 100, brightness: 100 }
+  ];
+
   const state = {
     // Hardware State from /api/state
     is_on: true,
@@ -30,13 +40,35 @@
     fadeOn: localStorage.getItem('tapo_fade_on') === 'true',
     fadeOff: localStorage.getItem('tapo_fade_off') === 'true',
 
-    // User Saved Presets
+    // Presets (7 presets matching reference images)
+    presets: (() => {
+      try {
+        const saved = localStorage.getItem('tapo_presets');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+      return JSON.parse(JSON.stringify(DEFAULT_PRESETS));
+    })(),
+
+    // Legacy custom presets (for modal)
     customPresets: JSON.parse(localStorage.getItem('tapo_custom_presets') || '[]'),
 
     // Modal Builder Temporary State
-    modalPresetType: 'color', // 'color' | 'white'
+    modalPresetType: 'color',
     modalHue: 180,
-    modalTemp: 3200
+    modalTemp: 3200,
+    modalEditingIndex: null,
+
+    // Edit Preset View State (full-page, images 2 & 3)
+    editingPresetIndex: null,
+    editPresetType: 'color',       // 'color' | 'white'
+    editPresetHue: 300,
+    editPresetSaturation: 100,
+    editPresetTemp: 2700,
+    editPresetBrightness: 100,
+    isReordering: false
   };
 
   // Navigation History Stack for Subviews
@@ -151,6 +183,36 @@
     btnCopyMatterCode: document.getElementById('btn-copy-matter-code'),
     btnSaveMatterQr: document.getElementById('btn-save-matter-qr'),
 
+    // View: Gestisci Preset (new full-page, image 1)
+    viewManagePresets: document.getElementById('view-manage-presets'),
+    presetManageListCard: document.getElementById('preset-manage-list-card'),
+    btnPresetRiordina: document.getElementById('btn-preset-riordina'),
+
+    // View: Edita Preset (new full-page, images 2 & 3)
+    viewEditPreset: document.getElementById('view-edit-preset'),
+    editPresetColorLabel: document.getElementById('edit-preset-color-label'),
+    editPresetSwatch: document.getElementById('edit-preset-swatch'),
+    editPresetHash: document.getElementById('edit-preset-hash'),
+    editPresetHexInput: document.getElementById('edit-preset-hex-input'),
+    editPresetTempWrap: document.getElementById('edit-preset-temp-wrap'),
+    editPresetTempInput: document.getElementById('edit-preset-temp-input'),
+    epTabWhite: document.getElementById('ep-tab-white'),
+    epTabColor: document.getElementById('ep-tab-color'),
+    epColorWheelWrap: document.getElementById('ep-color-wheel-wrap'),
+    epColorWheel: document.getElementById('ep-color-wheel'),
+    epWheelThumb: document.getElementById('ep-wheel-thumb'),
+    epTempWheelWrap: document.getElementById('ep-temp-wheel-wrap'),
+    epTempWheel: document.getElementById('ep-temp-wheel'),
+    epTempThumb: document.getElementById('ep-temp-thumb'),
+    btnEditPresetDone: document.getElementById('btn-edit-preset-done'),
+    btnDeletePreset: document.getElementById('btn-delete-preset'),
+    btnAddPreset: document.getElementById('btn-add-preset'),
+    epBrightnessLabel: document.getElementById('ep-brightness-label'),
+    epBrightnessFill: document.getElementById('ep-brightness-fill'),
+    epBrightnessThumb: document.getElementById('ep-brightness-thumb'),
+    epBrightnessInput: document.getElementById('ep-brightness-input'),
+    epBrightnessWrapper: document.getElementById('ep-brightness-wrapper'),
+
     // Modal: Preset Creator / Manager
     modalCustomPreset: document.getElementById('modal-custom-preset'),
     btnClosePresetModal: document.getElementById('btn-close-preset-modal'),
@@ -169,6 +231,12 @@
     btnClearAllPresets: document.getElementById('btn-clear-all-presets'),
     modalCustomPresetsList: document.getElementById('modal-custom-presets-list'),
     modalNoPresetsHint: document.getElementById('modal-no-presets-hint'),
+    modalListView: document.getElementById('modal-presets-list-view'),
+    modalEditorView: document.getElementById('modal-preset-editor-view'),
+    modalPresetTitle: document.getElementById('modal-preset-title'),
+    modalEditorLabel: document.getElementById('modal-editor-label'),
+    btnNewPreset: document.getElementById('btn-new-preset'),
+    btnBackPresetList: document.getElementById('btn-back-preset-list'),
 
     // Notifications
     appToast: document.getElementById('app-toast'),
@@ -339,6 +407,11 @@
   // ==========================================================================
   async function pollState() {
     if (state.isUserInteracting) return;
+
+    // Periodically sync presets from server across devices if not currently reordering or editing
+    if (!state.isReordering && state.editingPresetIndex === null) {
+      fetchPresetsFromServer();
+    }
 
     const data = await fetchApi('/api/state');
     if (data) {
@@ -555,8 +628,633 @@
   }
 
   // ==========================================================================
-  // Custom Presets Management
+  // Presets Management (Views: Gestisci Preset & Edita Preset)
   // ==========================================================================
+
+  /**
+   * Persist presets to localStorage (for fast offline startup)
+   * and save to FastAPI backend (/api/presets) so all devices share presets.
+   */
+  async function savePresets(presets) {
+    try {
+      localStorage.setItem('tapo_presets', JSON.stringify(presets));
+    } catch (_) {}
+
+    try {
+      await fetchApi('/api/presets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ presets })
+      });
+    } catch (err) {
+      console.warn('Failed to sync presets with server:', err);
+    }
+  }
+
+  /**
+   * Fetch current presets from server and update local UI if changed.
+   */
+  async function fetchPresetsFromServer() {
+    try {
+      const data = await fetchApi('/api/presets');
+      if (data && Array.isArray(data.presets) && data.presets.length > 0) {
+        const serverJson = JSON.stringify(data.presets);
+        const currentJson = JSON.stringify(state.presets);
+        if (serverJson !== currentJson) {
+          state.presets = data.presets;
+          try {
+            localStorage.setItem('tapo_presets', serverJson);
+          } catch (_) {}
+          renderMainPresets();
+          renderManagePresetsList();
+        }
+      }
+    } catch (err) {
+      console.warn('Could not fetch presets from server:', err);
+    }
+  }
+
+  /** Delete a preset by index and synchronize home view */
+  function deletePreset(index) {
+    if (index < 0 || index >= state.presets.length) return;
+    const name = state.presets[index].name || `Preset ${index + 1}`;
+    state.presets.splice(index, 1);
+    savePresets(state.presets);
+    renderManagePresetsList();
+    renderMainPresets();
+    showToast(`Preset "${name}" eliminato`);
+  }
+
+  /**
+   * Render preset swatches on the initial home screen (view-main).
+   * Tapping any swatch controls the light according to that preset.
+   */
+  function renderMainPresets() {
+    const container = document.getElementById('preset-swatches-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    state.presets.forEach((preset, index) => {
+      const btn = document.createElement('button');
+      btn.className = 'preset-item preset-color';
+      btn.dataset.index = index;
+
+      let swatchColor;
+      if (preset.type === 'color') {
+        btn.dataset.type = 'color';
+        btn.dataset.hue = preset.hue;
+        btn.dataset.brightness = preset.brightness || 100;
+        swatchColor = `hsl(${preset.hue}, ${preset.saturation || 100}%, 50%)`;
+        btn.title = preset.name || `Colore ${preset.hue}°`;
+      } else {
+        btn.dataset.type = 'temp';
+        btn.dataset.val = preset.temp;
+        btn.dataset.brightness = preset.brightness || 100;
+        const rgb = kelvinToRgb(preset.temp || 2700);
+        swatchColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+        btn.title = preset.name || `Bianco ${preset.temp}K`;
+      }
+      btn.style.setProperty('--swatch-color', swatchColor);
+
+      btn.addEventListener('click', () => {
+        container.querySelectorAll('.preset-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Apply brightness
+        const br = preset.brightness || 100;
+        state.brightness = br;
+        if (el.brightnessLabel) el.brightnessLabel.textContent = `${br}%`;
+        if (el.brightnessFill) el.brightnessFill.style.width = `${br}%`;
+        if (el.brightnessInput) el.brightnessInput.value = br;
+        debouncedSetBrightness(br);
+
+        if (preset.type === 'color') {
+          setActiveTab('color', false);
+          if (!state.hsv) state.hsv = { hue: 180, saturation: 100, value: 100 };
+          state.hsv.hue = preset.hue;
+          state.hsv.saturation = preset.saturation || 100;
+          updateBulbVisual();
+          debouncedSetColor(preset.hue);
+        } else {
+          setActiveTab('white', false);
+          state.color_temp = preset.temp;
+          if (el.whiteTempIndicator) el.whiteTempIndicator.textContent = `${preset.temp}K`;
+          updateBulbVisual();
+          debouncedSetTemp(preset.temp);
+        }
+      });
+
+      container.appendChild(btn);
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // GESTISCI PRESET VIEW (full-page list, image 1)
+  // --------------------------------------------------------------------------
+
+  /**
+   * Render the 7 preset rows in view-manage-presets.
+   * Matches 1.jpeg layout and typography.
+   */
+  function renderManagePresetsList() {
+    const card = el.presetManageListCard;
+    if (!card) return;
+
+    card.querySelectorAll('.preset-manage-row, .preset-manage-empty-hint').forEach(r => r.remove());
+
+    if (state.presets.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'preset-manage-empty-hint';
+      empty.textContent = 'Nessun preset. Tocca "Nuovo Preset" qui sotto per aggiungerne uno.';
+      card.appendChild(empty);
+      return;
+    }
+
+    state.presets.forEach((preset, idx) => {
+      const row = document.createElement('div');
+      row.className = 'preset-manage-row';
+      row.dataset.index = idx;
+      row.setAttribute('role', 'button');
+      row.setAttribute('tabindex', '0');
+      row.draggable = true;
+
+      let dotColor;
+      if (preset.type === 'color') {
+        dotColor = `hsl(${preset.hue}, ${preset.saturation || 100}%, 50%)`;
+      } else {
+        const rgb = kelvinToRgb(preset.temp || 2700);
+        dotColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+      }
+
+      // Meta text: Sun icon + 100% | dot + (Kelvin if white, or nothing if color)
+      const metaHtml = preset.type === 'white'
+        ? `<svg class="preset-meta-sun" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg> <span>${preset.brightness || 100}%</span><span class="preset-meta-sep">|</span><span class="preset-manage-dot" style="background:${dotColor};"></span><span>${preset.temp}K</span>`
+        : `<svg class="preset-meta-sun" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg> <span>${preset.brightness || 100}%</span><span class="preset-meta-sep">|</span><span class="preset-manage-dot" style="background:${dotColor};"></span>`;
+
+      row.innerHTML = `
+        <button type="button" class="preset-manage-del-btn" data-index="${idx}" title="Elimina preset" aria-label="Elimina preset">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="#ef4444">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="7" y1="12" x2="17" y2="12" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <div class="preset-manage-row-left">
+          <div class="preset-manage-row-name">${preset.name || `Preset ${idx + 1}`}</div>
+          <div class="preset-manage-row-meta">${metaHtml}</div>
+        </div>
+        <svg class="preset-manage-row-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+        <div class="preset-manage-drag-handle" title="Trascina per riordinare">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="4" y1="7" x2="20" y2="7"/>
+            <line x1="4" y1="12" x2="20" y2="12"/>
+            <line x1="4" y1="17" x2="20" y2="17"/>
+          </svg>
+        </div>
+      `;
+
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('.preset-manage-del-btn')) return;
+        if (state.isReordering) return;
+        openEditPresetView(idx);
+      });
+
+      const delBtn = row.querySelector('.preset-manage-del-btn');
+      if (delBtn) {
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deletePreset(idx);
+        });
+      }
+
+      // Drag and drop for reordering
+      row.addEventListener('dragstart', (e) => {
+        if (!state.isReordering) {
+          e.preventDefault();
+          return;
+        }
+        row.classList.add('is-dragging');
+        e.dataTransfer.setData('text/plain', String(idx));
+        e.dataTransfer.effectAllowed = 'move';
+      });
+
+      row.addEventListener('dragend', () => {
+        row.classList.remove('is-dragging');
+        card.querySelectorAll('.preset-manage-row').forEach(r => r.classList.remove('drag-over'));
+      });
+
+      row.addEventListener('dragover', (e) => {
+        if (!state.isReordering) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        row.classList.add('drag-over');
+      });
+
+      row.addEventListener('dragleave', () => {
+        row.classList.remove('drag-over');
+      });
+
+      row.addEventListener('drop', (e) => {
+        if (!state.isReordering) return;
+        e.preventDefault();
+        row.classList.remove('drag-over');
+        const fromIdx = Number(e.dataTransfer.getData('text/plain'));
+        const toIdx = idx;
+        if (!isNaN(fromIdx) && fromIdx !== toIdx) {
+          const item = state.presets.splice(fromIdx, 1)[0];
+          state.presets.splice(toIdx, 0, item);
+          localStorage.setItem('tapo_presets', JSON.stringify(state.presets));
+          renderManagePresetsList();
+          renderMainPresets();
+        }
+      });
+
+      card.appendChild(row);
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // EDITA PRESET VIEW (full-page editor, images 2 & 3)
+  // --------------------------------------------------------------------------
+
+  /** Draw the HSV color wheel with Red at top (12 o'clock, 0°), Magenta at 10 o'clock (300°) */
+  function drawColorWheel(canvas) {
+    const ctx = canvas.getContext('2d');
+    const size = canvas.width;
+    const cx = size / 2;
+    const cy = size / 2;
+    const r = size / 2;
+
+    const img = ctx.createImageData(size, size);
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const dx = x - cx;
+        const dy = y - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > r) continue;
+
+        const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 90 + 360) % 360;
+        const sat = dist / r;
+
+        const h6 = angle / 60;
+        const hi = Math.floor(h6) % 6;
+        const f = h6 - Math.floor(h6);
+        const p = 1 - sat;
+        const q = 1 - sat * f;
+        const t = 1 - sat * (1 - f);
+        let rr, gg, bb;
+        switch (hi) {
+          case 0: rr = 1; gg = t; bb = p; break;
+          case 1: rr = q; gg = 1; bb = p; break;
+          case 2: rr = p; gg = 1; bb = t; break;
+          case 3: rr = p; gg = q; bb = 1; break;
+          case 4: rr = t; gg = p; bb = 1; break;
+          case 5: rr = 1; gg = p; bb = q; break;
+          default: rr = gg = bb = 1;
+        }
+        const i = (y * size + x) * 4;
+        img.data[i] = Math.round(rr * 255);
+        img.data[i + 1] = Math.round(gg * 255);
+        img.data[i + 2] = Math.round(bb * 255);
+        img.data[i + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  /** Draw the warm-to-cool temperature vertical gradient disc (Image 3) */
+  function drawTempWheel(canvas) {
+    const ctx = canvas.getContext('2d');
+    const size = canvas.width;
+    const cx = size / 2;
+    const cy = size / 2;
+    const r = size / 2;
+
+    ctx.clearRect(0, 0, size, size);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.clip();
+
+    // Vertical linear gradient from top (warm amber) to bottom (cool blue)
+    const grad = ctx.createLinearGradient(0, 0, 0, size);
+    grad.addColorStop(0, '#ff9e3b');   // 2500K warm amber
+    grad.addColorStop(0.25, '#ffc77d'); // 3500K warm white
+    grad.addColorStop(0.5, '#ffffff');  // 4500K neutral white
+    grad.addColorStop(0.75, '#d6e8ff'); // 5500K light icy white
+    grad.addColorStop(1, '#b8d8ff');   // 6500K cool light blue
+
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+    ctx.restore();
+  }
+
+  /** Convert hex string to HSV { hue, saturation, value } */
+  function hexToHsv(hex) {
+    let clean = hex.replace(/[^0-9A-Fa-f]/g, '');
+    if (clean.length === 3) {
+      clean = clean.split('').map(c => c + c).join('');
+    }
+    if (clean.length !== 6) return null;
+
+    const r = parseInt(clean.substring(0, 2), 16) / 255;
+    const g = parseInt(clean.substring(2, 4), 16) / 255;
+    const b = parseInt(clean.substring(4, 6), 16) / 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+
+    let h = 0;
+    if (delta !== 0) {
+      if (max === r) {
+        h = ((g - b) / delta) % 6;
+      } else if (max === g) {
+        h = (b - r) / delta + 2;
+      } else {
+        h = (r - g) / delta + 4;
+      }
+      h = Math.round(h * 60);
+      if (h < 0) h += 360;
+    }
+
+    const s = max === 0 ? 0 : delta / max;
+    return {
+      hue: Math.round(h),
+      saturation: Math.round(s * 100),
+      value: Math.round(max * 100)
+    };
+  }
+
+  /** Convert HSV { hue, saturation } to 6-character hex */
+  function hsvToHex(hue, saturation) {
+    const rgb = hslToRgb(hue, saturation, 50);
+    return [rgb.r, rgb.g, rgb.b].map(v => v.toString(16).padStart(2, '0').toUpperCase()).join('');
+  }
+
+  /** Update UI elements in view-edit-preset */
+  function updateEditPresetUI() {
+    const isColor = state.editPresetType === 'color';
+
+    if (isColor) {
+      if (el.editPresetColorLabel) el.editPresetColorLabel.textContent = 'Colore';
+      if (el.editPresetHash) el.editPresetHash.classList.remove('hidden');
+      if (el.editPresetHexInput) {
+        el.editPresetHexInput.classList.remove('hidden');
+        if (document.activeElement !== el.editPresetHexInput) {
+          el.editPresetHexInput.value = hsvToHex(state.editPresetHue, state.editPresetSaturation);
+        }
+      }
+      if (el.editPresetTempWrap) el.editPresetTempWrap.classList.add('hidden');
+
+      const colorStr = `hsl(${state.editPresetHue}, ${state.editPresetSaturation}%, 50%)`;
+      if (el.editPresetSwatch) el.editPresetSwatch.style.backgroundColor = colorStr;
+
+      // Position color wheel thumb
+      if (el.epWheelThumb) {
+        const angleRad = (state.editPresetHue - 90) * Math.PI / 180;
+        const satRatio = (state.editPresetSaturation ?? 100) / 100;
+        const leftPct = 50 + (satRatio * 50 * Math.cos(angleRad));
+        const topPct = 50 + (satRatio * 50 * Math.sin(angleRad));
+        el.epWheelThumb.style.left = `${leftPct}%`;
+        el.epWheelThumb.style.top = `${topPct}%`;
+        el.epWheelThumb.style.backgroundColor = colorStr;
+      }
+    } else {
+      if (el.editPresetColorLabel) el.editPresetColorLabel.textContent = 'Temperatura Colore';
+      if (el.editPresetHash) el.editPresetHash.classList.add('hidden');
+      if (el.editPresetHexInput) el.editPresetHexInput.classList.add('hidden');
+      if (el.editPresetTempWrap) el.editPresetTempWrap.classList.remove('hidden');
+      if (el.editPresetTempInput && document.activeElement !== el.editPresetTempInput) {
+        el.editPresetTempInput.value = state.editPresetTemp || 2700;
+      }
+
+      const kelvin = state.editPresetTemp || 2700;
+      const rgb = kelvinToRgb(kelvin);
+      const colorStr = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+      if (el.editPresetSwatch) el.editPresetSwatch.style.backgroundColor = colorStr;
+
+      // Position temp thumb along vertical axis
+      if (el.epTempThumb) {
+        const ratio = Math.max(0, Math.min(1, (kelvin - 2500) / (6500 - 2500)));
+        el.epTempThumb.style.top = `${ratio * 100}%`;
+        el.epTempThumb.style.left = '50%';
+        el.epTempThumb.style.backgroundColor = colorStr;
+      }
+    }
+
+    // Brightness slider
+    const br = state.editPresetBrightness ?? 100;
+    if (el.epBrightnessLabel) el.epBrightnessLabel.textContent = `${br}%`;
+    if (el.epBrightnessFill) el.epBrightnessFill.style.width = `${br}%`;
+    if (el.epBrightnessThumb) el.epBrightnessThumb.style.left = `${br}%`;
+    if (el.epBrightnessInput) el.epBrightnessInput.value = br;
+  }
+
+  function switchEditPresetTab(tab) {
+    state.editPresetType = tab;
+    if (tab === 'color') {
+      el.epTabColor?.classList.add('active');
+      el.epTabWhite?.classList.remove('active');
+      el.epColorWheelWrap?.classList.remove('hidden');
+      el.epTempWheelWrap?.classList.add('hidden');
+      if (state.editPresetHue === undefined) state.editPresetHue = 300;
+      if (state.editPresetSaturation === undefined) state.editPresetSaturation = 100;
+    } else {
+      el.epTabWhite?.classList.add('active');
+      el.epTabColor?.classList.remove('active');
+      el.epTempWheelWrap?.classList.remove('hidden');
+      el.epColorWheelWrap?.classList.add('hidden');
+      if (state.editPresetTemp === undefined) state.editPresetTemp = 2700;
+    }
+    updateEditPresetUI();
+  }
+
+  /**
+   * Open the edit-preset view.
+   * If preset is white light -> opens Image 3 (Temperatura Colore / Luce Bianca).
+   * If preset is color/RGB -> opens Image 2 (Colore / Color Wheel).
+   */
+  function openEditPresetView(index) {
+    state.editingPresetIndex = index;
+    const preset = state.presets[index] || DEFAULT_PRESETS[0];
+
+    state.editPresetType = preset.type;
+    state.editPresetBrightness = preset.brightness ?? 100;
+
+    if (preset.type === 'color') {
+      state.editPresetHue = preset.hue ?? 300;
+      state.editPresetSaturation = preset.saturation ?? 100;
+    } else {
+      state.editPresetTemp = preset.temp ?? 2700;
+    }
+
+    // Lazy canvas initialization
+    if (el.epColorWheel && !el.epColorWheel._drawn) {
+      drawColorWheel(el.epColorWheel);
+      el.epColorWheel._drawn = true;
+    }
+    if (el.epTempWheel && !el.epTempWheel._drawn) {
+      drawTempWheel(el.epTempWheel);
+      el.epTempWheel._drawn = true;
+    }
+
+    switchEditPresetTab(state.editPresetType);
+    updateEditPresetUI();
+    showView('view-edit-preset');
+  }
+
+  /** Color wheel touch/pointer handler */
+  function setupColorWheelInteraction() {
+    const canvas = el.epColorWheel;
+    if (!canvas) return;
+
+    function handlePointer(e) {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const r = canvas.width / 2;
+      const sat = Math.min(1, dist / r);
+      const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 90 + 360) % 360;
+
+      state.editPresetHue = Math.round(angle);
+      state.editPresetSaturation = Math.round(sat * 100);
+      updateEditPresetUI();
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      canvas.setPointerCapture(e.pointerId);
+      handlePointer(e);
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (e.buttons === 0) return;
+      handlePointer(e);
+    });
+    canvas.addEventListener('pointerup', handlePointer);
+  }
+
+  /** Temperature disc touch/pointer handler (tappable & draggable anywhere on circle) */
+  function setupTempWheelInteraction() {
+    const wrap = el.epTempWheelWrap || el.epTempWheel;
+    if (!wrap) return;
+
+    function handlePointer(e) {
+      e.preventDefault();
+      const rect = wrap.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const ratio = Math.max(0, Math.min(1, y / rect.height));
+      const kelvin = Math.round((2500 + ratio * (6500 - 2500)) / 50) * 50;
+      state.editPresetTemp = kelvin;
+      updateEditPresetUI();
+    }
+
+    wrap.addEventListener('pointerdown', (e) => {
+      wrap.setPointerCapture(e.pointerId);
+      handlePointer(e);
+    });
+    wrap.addEventListener('pointermove', (e) => {
+      if (e.buttons === 0) return;
+      handlePointer(e);
+    });
+    wrap.addEventListener('pointerup', handlePointer);
+  }
+
+  /** Keyboard typing for Kelvin temperature (white mode) */
+  function setupTempInputInteraction() {
+    const input = el.editPresetTempInput;
+    if (!input) return;
+
+    input.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (!isNaN(val)) {
+        const clamped = Math.max(2500, Math.min(6500, val));
+        state.editPresetTemp = clamped;
+        const rgb = kelvinToRgb(clamped);
+        if (el.editPresetSwatch) el.editPresetSwatch.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+        if (el.epTempThumb) {
+          const ratio = Math.max(0, Math.min(1, (clamped - 2500) / (6500 - 2500)));
+          el.epTempThumb.style.top = `${ratio * 100}%`;
+          el.epTempThumb.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+        }
+      }
+    });
+
+    input.addEventListener('blur', () => {
+      let val = parseInt(input.value, 10);
+      if (isNaN(val)) val = 2700;
+      val = Math.max(2500, Math.min(6500, val));
+      state.editPresetTemp = val;
+      updateEditPresetUI();
+    });
+  }
+
+  /** Keyboard typing for hexadecimal color code (color mode) */
+  function setupHexInputInteraction() {
+    const input = el.editPresetHexInput;
+    if (!input) return;
+
+    input.addEventListener('input', (e) => {
+      let val = e.target.value.toUpperCase().replace(/[^0-9A-F]/g, '');
+      input.value = val;
+      if (val.length === 6) {
+        const hsv = hexToHsv(val);
+        if (hsv) {
+          state.editPresetHue = hsv.hue;
+          state.editPresetSaturation = hsv.saturation;
+          updateEditPresetUI();
+        }
+      }
+    });
+
+    input.addEventListener('blur', () => {
+      input.value = hsvToHex(state.editPresetHue, state.editPresetSaturation);
+    });
+  }
+
+  /** Custom brightness slider with white circle thumb (matching 2.jpeg/3.jpeg) */
+  function setupEditPresetBrightnessSlider() {
+    const wrapper = el.epBrightnessWrapper;
+    const input = el.epBrightnessInput;
+    if (!wrapper || !input) return;
+
+    function updateFromPointer(clientX) {
+      const rect = wrapper.getBoundingClientRect();
+      const ratio = Math.max(0.01, Math.min(1, (clientX - rect.left) / rect.width));
+      const val = Math.round(ratio * 100);
+      state.editPresetBrightness = val;
+      input.value = val;
+      if (el.epBrightnessLabel) el.epBrightnessLabel.textContent = `${val}%`;
+      if (el.epBrightnessFill) el.epBrightnessFill.style.width = `${val}%`;
+      if (el.epBrightnessThumb) el.epBrightnessThumb.style.left = `${val}%`;
+    }
+
+    wrapper.addEventListener('pointerdown', (e) => {
+      wrapper.setPointerCapture(e.pointerId);
+      updateFromPointer(e.clientX);
+    });
+    wrapper.addEventListener('pointermove', (e) => {
+      if (e.buttons === 0) return;
+      updateFromPointer(e.clientX);
+    });
+
+    input.addEventListener('input', (e) => {
+      const val = Number(e.target.value);
+      state.editPresetBrightness = val;
+      if (el.epBrightnessLabel) el.epBrightnessLabel.textContent = `${val}%`;
+      if (el.epBrightnessFill) el.epBrightnessFill.style.width = `${val}%`;
+      if (el.epBrightnessThumb) el.epBrightnessThumb.style.left = `${val}%`;
+    });
+  }
+
   function renderCustomPresets() {
     if (!el.customPresetsContainer) return;
     el.customPresetsContainer.innerHTML = '';
@@ -597,6 +1295,12 @@
 
     // Also update modal manage list if it's open
     renderModalPresetList();
+
+    // Also refresh the full-page manage list if visible
+    const manageView = document.getElementById('view-manage-presets');
+    if (manageView && manageView.classList.contains('active')) {
+      renderManagePresetsList();
+    }
   }
 
   function renderModalPresetList() {
@@ -607,8 +1311,49 @@
     // Clear existing preset rows in modal (keep the hint)
     listEl.querySelectorAll('.modal-preset-row').forEach(r => r.remove());
 
+    const builtInPresets = [
+      { name: 'Caldo', type: 'white', temp: 2700 },
+      { name: 'Caldo', type: 'white', temp: 3200 },
+      { name: 'Naturale', type: 'white', temp: 3800 },
+      { name: 'Freddo', type: 'white', temp: 5000 },
+      { name: 'Viola', type: 'color', hue: 275 },
+      { name: 'Giallo', type: 'color', hue: 55 }
+    ];
+    builtInPresets.forEach((preset) => {
+      const row = document.createElement('div');
+      row.className = 'modal-preset-row';
+      const content = document.createElement('div');
+      content.className = 'modal-preset-row-content';
+      const swatch = document.createElement('div');
+      swatch.className = 'modal-preset-swatch';
+      if (preset.type === 'color') swatch.style.backgroundColor = `hsl(${preset.hue}, 100%, 50%)`;
+      else {
+        const rgb = kelvinToRgb(preset.temp);
+        swatch.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+      }
+      const label = document.createElement('span');
+      label.className = 'modal-preset-name';
+      label.textContent = `${preset.name} | ${preset.type === 'color' ? 'Colore' : `${preset.temp}K`}`;
+      content.append(swatch, label);
+      row.appendChild(content);
+      row.addEventListener('click', () => {
+        if (preset.type === 'color') {
+          setActiveTab('color', false);
+          state.hsv.hue = preset.hue;
+          debouncedSetColor(preset.hue);
+        } else {
+          setActiveTab('white', false);
+          state.color_temp = preset.temp;
+          debouncedSetTemp(preset.temp);
+        }
+        updateUI();
+        el.modalCustomPreset.classList.add('hidden');
+      });
+      listEl.appendChild(row);
+    });
+
     if (state.customPresets.length === 0) {
-      if (hintEl) hintEl.style.display = '';
+      if (hintEl) hintEl.style.display = 'none';
     } else {
       if (hintEl) hintEl.style.display = 'none';
       state.customPresets.forEach((preset, index) => {
@@ -634,7 +1379,8 @@
         delBtn.className = 'modal-preset-del-btn';
         delBtn.setAttribute('aria-label', 'Elimina preset');
         delBtn.textContent = 'Elimina';
-        delBtn.addEventListener('click', () => {
+        delBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
           state.customPresets.splice(index, 1);
           localStorage.setItem('tapo_custom_presets', JSON.stringify(state.customPresets));
           renderCustomPresets();
@@ -646,6 +1392,7 @@
         content.className = 'modal-preset-row-content';
         content.appendChild(swatch);
         content.appendChild(label);
+        content.addEventListener('click', () => openPresetEditor(index));
         row.appendChild(delBtn);
         row.appendChild(content);
         listEl.appendChild(row);
@@ -685,6 +1432,43 @@
         });
       });
     }
+  }
+
+  function showPresetList() {
+    state.modalEditingIndex = null;
+    el.modalListView?.classList.remove('hidden');
+    el.modalEditorView?.classList.add('hidden');
+    el.btnBackPresetList?.classList.add('hidden');
+    if (el.btnNewPreset) el.btnNewPreset.classList.remove('hidden');
+    if (el.modalPresetTitle) el.modalPresetTitle.textContent = 'Mio Preset';
+    renderModalPresetList();
+  }
+
+  function openPresetEditor(index = null) {
+    state.modalEditingIndex = index;
+    const preset = index === null ? null : state.customPresets[index];
+    if (preset) {
+      state.modalPresetType = preset.type;
+      state.modalHue = preset.hue ?? 180;
+      state.modalTemp = preset.temp ?? 3200;
+      el.modalPresetName.value = preset.name || '';
+      el.modalColorSlider.value = state.modalHue;
+      el.modalWhiteSlider.value = state.modalTemp;
+      if (state.modalPresetType === 'color') el.modalTabColor.click();
+      else el.modalTabWhite.click();
+    } else {
+      el.modalPresetName.value = '';
+      el.modalColorSlider.value = state.modalHue;
+      el.modalWhiteSlider.value = state.modalTemp;
+    }
+    el.modalListView?.classList.add('hidden');
+    el.modalEditorView?.classList.remove('hidden');
+    el.btnBackPresetList?.classList.remove('hidden');
+    el.btnNewPreset?.classList.add('hidden');
+    if (el.modalPresetTitle) el.modalPresetTitle.textContent = preset ? 'Modifica Preset' : 'Nuovo Preset';
+    if (el.modalEditorLabel) el.modalEditorLabel.textContent = preset ? 'Impostazioni preset' : 'Crea un nuovo preset';
+    if (el.btnSaveCustomPreset) el.btnSaveCustomPreset.textContent = preset ? 'Salva modifiche' : 'Aggiungi a Mio Preset';
+    updateModalSwatch();
   }
 
   function updateModalSwatch() {
@@ -1306,14 +2090,104 @@
       }
     });
 
-    // 17. Custom Color Preset Manager Modal
+    // 17. Gestisci Preset full-page view listeners (Image 1)
     if (el.btnManagePresets) {
       el.btnManagePresets.addEventListener('click', () => {
-        el.modalCustomPreset.classList.remove('hidden');
-        renderModalPresetList();
-        updateModalSwatch();
+        renderManagePresetsList();
+        showView('view-manage-presets');
       });
     }
+
+    if (el.btnPresetRiordina) {
+      el.btnPresetRiordina.addEventListener('click', () => {
+        state.isReordering = !state.isReordering;
+        el.btnPresetRiordina.textContent = state.isReordering ? 'Fatto' : 'Riordina';
+        const card = el.presetManageListCard;
+        if (card) card.classList.toggle('is-reordering', state.isReordering);
+
+        if (!state.isReordering) {
+          localStorage.setItem('tapo_presets', JSON.stringify(state.presets));
+          renderMainPresets();
+          showToast('Ordine preset salvato');
+        }
+      });
+    }
+
+    if (el.btnAddPreset) {
+      el.btnAddPreset.addEventListener('click', () => {
+        const newIdx = state.presets.length;
+        const newPreset = {
+          name: `Preset ${newIdx + 1}`,
+          type: 'color',
+          hue: 200,
+          saturation: 100,
+          brightness: 100
+        };
+        state.presets.push(newPreset);
+        localStorage.setItem('tapo_presets', JSON.stringify(state.presets));
+        renderManagePresetsList();
+        renderMainPresets();
+        openEditPresetView(newIdx);
+      });
+    }
+
+    // 17b. Edita Preset view tab switching & Done button (Images 2 & 3)
+    if (el.epTabColor) {
+      el.epTabColor.addEventListener('click', () => switchEditPresetTab('color'));
+    }
+    if (el.epTabWhite) {
+      el.epTabWhite.addEventListener('click', () => switchEditPresetTab('white'));
+    }
+
+    if (el.btnEditPresetDone) {
+      el.btnEditPresetDone.addEventListener('click', () => {
+        if (state.editingPresetIndex !== null && state.presets[state.editingPresetIndex]) {
+          const p = state.presets[state.editingPresetIndex];
+          p.type = state.editPresetType;
+          p.brightness = state.editPresetBrightness;
+          if (state.editPresetType === 'color') {
+            p.hue = state.editPresetHue;
+            p.saturation = state.editPresetSaturation;
+            delete p.temp;
+          } else {
+            p.temp = state.editPresetTemp;
+            delete p.hue;
+            delete p.saturation;
+          }
+          localStorage.setItem('tapo_presets', JSON.stringify(state.presets));
+        }
+        renderManagePresetsList();
+        renderMainPresets();
+        showToast('Preset salvato');
+        showView('view-manage-presets');
+      });
+    }
+
+    if (el.btnDeletePreset) {
+      el.btnDeletePreset.addEventListener('click', () => {
+        if (state.editingPresetIndex !== null && state.presets[state.editingPresetIndex]) {
+          const idx = state.editingPresetIndex;
+          state.editingPresetIndex = null;
+          deletePreset(idx);
+          showView('view-manage-presets');
+        }
+      });
+    }
+
+    // Preset interactions setup
+    setupColorWheelInteraction();
+    setupTempWheelInteraction();
+    setupTempInputInteraction();
+    setupHexInputInteraction();
+    setupEditPresetBrightnessSlider();
+
+    if (el.btnNewPreset) {
+      el.btnNewPreset.addEventListener('click', () => {
+        const isReordering = el.modalCustomPresetsList.classList.toggle('is-reordering');
+        el.btnNewPreset.textContent = isReordering ? 'Fatto' : 'Riordina';
+      });
+    }
+    if (el.btnBackPresetList) el.btnBackPresetList.addEventListener('click', showPresetList);
 
     if (el.btnClosePresetModal) {
       el.btnClosePresetModal.addEventListener('click', () => {
@@ -1390,12 +2264,12 @@
           hue: state.modalPresetType === 'color' ? state.modalHue : undefined,
           temp: state.modalPresetType === 'white' ? state.modalTemp : undefined
         };
-        state.customPresets.push(newPreset);
+        if (state.modalEditingIndex === null) state.customPresets.push(newPreset);
+        else state.customPresets[state.modalEditingIndex] = newPreset;
         localStorage.setItem('tapo_custom_presets', JSON.stringify(state.customPresets));
         renderCustomPresets();
-        renderModalPresetList();
-        el.modalPresetName.value = '';
-        showToast('Nuovo preset aggiunto a "Mio Preset"!');
+        showToast(state.modalEditingIndex === null ? 'Nuovo preset aggiunto a "Mio Preset"!' : 'Preset modificato');
+        showPresetList();
       });
     }
 
@@ -1439,6 +2313,8 @@
   function init() {
     setupListeners();
     applyDeviceCustomizations();
+    renderMainPresets();
+    renderManagePresetsList();
     renderCustomPresets();
     updateTabIndicator(el.tabBtnWhite);
     updateUI();

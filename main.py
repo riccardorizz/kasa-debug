@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -213,6 +214,57 @@ async def set_color(color: ColorRequest, request: Request) -> dict:
         "saturation": color.saturation,
         "value": color.value,
     }
+
+
+PRESETS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "presets.json")
+
+DEFAULT_PRESETS = [
+    {"name": "Preset 1", "type": "white", "temp": 2700, "brightness": 100},
+    {"name": "Preset 2", "type": "white", "temp": 3000, "brightness": 100},
+    {"name": "Preset 3", "type": "white", "temp": 3300, "brightness": 100},
+    {"name": "Preset 4", "type": "white", "temp": 3600, "brightness": 100},
+    {"name": "Preset 5", "type": "color", "hue": 280, "saturation": 100, "brightness": 100},
+    {"name": "Preset 6", "type": "color", "hue": 55, "saturation": 100, "brightness": 100},
+    {"name": "Preset 7", "type": "color", "hue": 300, "saturation": 100, "brightness": 100},
+]
+
+
+def load_presets_from_file() -> list[dict]:
+    if os.path.exists(PRESETS_FILE):
+        try:
+            with open(PRESETS_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, list) and len(data) > 0:
+                    return data
+        except Exception as exc:
+            logger.warning("Errore lettura file presets: %s", exc)
+    return list(DEFAULT_PRESETS)
+
+
+def save_presets_to_file(presets: list[dict]) -> None:
+    try:
+        tmp_file = PRESETS_FILE + ".tmp"
+        with open(tmp_file, "w", encoding="utf-8") as f:
+            json.dump(presets, f, indent=2, ensure_ascii=False)
+        os.replace(tmp_file, PRESETS_FILE)
+    except Exception as exc:
+        logger.warning("Errore salvataggio file presets: %s", exc)
+
+
+class PresetsPayload(BaseModel):
+    presets: list[dict]
+
+
+@app.get("/api/presets")
+async def get_presets() -> dict:
+    presets = load_presets_from_file()
+    return {"status": 200, "presets": presets}
+
+
+@app.post("/api/presets")
+async def update_presets(payload: PresetsPayload) -> dict:
+    save_presets_to_file(payload.presets)
+    return {"status": 200, "presets": payload.presets}
 
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
