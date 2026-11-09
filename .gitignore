@@ -3,3 +3,14 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+
+# Generated workspace and capture artifacts
+attachments/
+reference/
+capture/
+inbox/
+investigation.cany/
+*.log
+feed.json
+usage.json
+craft.json

@@ -1,87 +1,1055 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Test lampadina Tapo</title>
-  </head>
-  <body>
-    <h1>Test lampadina Tapo</h1>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#09090b">
+  <meta name="description" content="Interfaccia di controllo intelligente per lampadina Tapo Kasa">
+  
+  <!-- iOS PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Lampadina">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  
+  <title>Lampadina Smart</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="app-wrapper">
 
-    <button id="refresh">Leggi stato</button>
-    <button data-power="true">Accendi</button>
-    <button data-power="false">Spegni</button>
+    <!-- ====================================================================
+         VIEW: MAIN CONTROL SCREEN
+         ==================================================================== -->
+    <div id="view-main" class="app-view active">
+      <!-- Ambient top warm glow -->
+      <div class="ambient-glow" id="ambient-glow"></div>
 
-    <h2>Luminosità</h2>
-    <input id="brightness" type="number" min="0" max="100" value="50">
-    <button id="set-brightness">Imposta luminosità</button>
+      <!-- Header navigation bar -->
+      <header class="top-nav">
+        <button class="nav-btn" id="btn-back-home" aria-label="Torna indietro">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
 
-    <h2>Temperatura colore (K)</h2>
-    <input id="temperature" type="number" min="2500" max="6500" value="4000">
-    <button id="set-temperature">Imposta temperatura</button>
+        <div class="top-nav-actions">
+          <button class="nav-btn settings-btn" id="btn-settings" aria-label="Impostazioni">
+            <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2.5 20.2 7.2 20.2 16.8 12 21.5 3.8 16.8 3.8 7.2"></polygon>
+              <circle cx="12" cy="12" r="3.2"></circle>
+            </svg>
+            <span class="notification-badge"></span>
+          </button>
+        </div>
+      </header>
 
-    <h2>Colore HSV</h2>
-    <label>Hue <input id="hue" type="number" min="0" max="360" value="180"></label>
-    <label>Saturation <input id="saturation" type="number" min="0" max="100" value="100"></label>
-    <label>Value <input id="value" type="number" min="0" max="100" value="100"></label>
-    <button id="set-color">Imposta colore</button>
+      <!-- Bulb Hero Section -->
+      <section class="hero-section">
+        <div class="hero-bulb-container" id="hero-bulb-container">
+          <!-- Dynamically renders active icon SVG -->
+          <svg id="hero-bulb-svg" class="hero-bulb-svg" viewBox="0 0 160 210" aria-label="Lampadina">
+            <defs>
+              <radialGradient id="bulb-glass-gradient" cx="45%" cy="35%" r="65%">
+                <stop offset="0%" stop-color="var(--bulb-inner-light, #fed776)"/>
+                <stop offset="70%" stop-color="var(--bulb-main-color, #f6b23a)"/>
+                <stop offset="100%" stop-color="var(--bulb-dark-color, #e09922)"/>
+              </radialGradient>
+            </defs>
 
-    <pre id="result">In attesa…</pre>
-    <script>
-      const result = document.querySelector("#result");
+            <!-- Bulb Glass Body -->
+            <path id="bulb-glass" class="bulb-glass" d="
+              M 80 18
+              C 44 18, 22 46, 22 82
+              C 22 108, 38 128, 52 144
+              C 56 148, 58 153, 58 158
+              L 102 158
+              C 102 153, 104 148, 108 144
+              C 122 128, 138 108, 138 82
+              C 138 46, 116 18, 80 18 Z
+            " fill="url(#bulb-glass-gradient)" />
 
-      async function callApi(path, options = {}) {
-        result.textContent = "Richiesta in corso…";
-        try {
-          const response = await fetch(path, options);
-          const body = await response.json();
-          result.textContent = JSON.stringify(
-            { status: response.status, ...body },
-            null,
-            2
-          );
-        } catch (error) {
-          result.textContent = String(error);
-        }
-      }
+            <!-- Bulb Filament 'Y' Shape -->
+            <g id="bulb-filament" class="bulb-filament">
+              <line x1="80" y1="110" x2="80" y2="152" stroke="#ffffff" stroke-width="6.5" stroke-linecap="round"/>
+              <line x1="80" y1="110" x2="56" y2="80" stroke="#ffffff" stroke-width="6.5" stroke-linecap="round"/>
+              <line x1="80" y1="110" x2="104" y2="80" stroke="#ffffff" stroke-width="6.5" stroke-linecap="round"/>
+            </g>
 
-      document.querySelector("#refresh").addEventListener("click", () => {
-        callApi("/api/state");
-      });
+            <!-- Bulb Screw Base Rings -->
+            <g class="bulb-base">
+              <rect x="56" y="160" width="48" height="11" rx="4.5" fill="#2c2c34"/>
+              <rect x="61" y="174" width="38" height="10" rx="4" fill="#24242b"/>
+              <path d="M 66 186 C 66 186, 68 196, 80 196 C 92 196, 94 186, 94 186 Z" fill="#18181f"/>
+            </g>
+          </svg>
+        </div>
 
-      document.querySelectorAll("[data-power]").forEach((button) => {
-        button.addEventListener("click", () => {
-          callApi(`/api/power/${button.dataset.power}`, { method: "POST" });
-        });
-      });
+        <div class="hero-info">
+          <h1 class="hero-title" id="hero-device-name">Lampadina<br>Smart</h1>
+          <div class="hero-location" id="hero-device-location-badge">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+            <span id="hero-device-location">Camera da letto</span>
+          </div>
+        </div>
+      </section>
 
-      document.querySelector("#set-brightness").addEventListener("click", () => {
-        callApi(`/api/brightness/${document.querySelector("#brightness").value}`, {
-          method: "POST",
-        });
-      });
+      <!-- Main Content Container -->
+      <main class="main-content">
+        <!-- Power Card -->
+        <section class="card power-card">
+          <span class="power-title">Power</span>
+          <button id="power-toggle-btn" class="power-circle-btn power-on" aria-label="Accendi o spegni la lampadina">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+              <line x1="12" y1="2" x2="12" y2="12"></line>
+            </svg>
+          </button>
+        </section>
 
-      document.querySelector("#set-temperature").addEventListener("click", () => {
-        callApi(`/api/temp/${document.querySelector("#temperature").value}`, {
-          method: "POST",
-        });
-      });
+        <!-- Dependent Controls Container (dims when bulb is off) -->
+        <div id="controllable-area" class="controllable-area">
+          
+          <!-- Mio Preset Card -->
+          <section class="card presets-card">
+            <div class="presets-header-row">
+              <h2 class="card-subtitle">Mio Preset</h2>
+              <span class="preset-tip-hint">Tocca per applicare</span>
+            </div>
+            <div class="preset-scroll-row" id="preset-list">
+              <!-- Preset A (Auto) -->
+              <button class="preset-item preset-auto" data-preset="auto" title="Auto (4000K)">
+                <span class="preset-a-letter">A</span>
+              </button>
+              <!-- Built-in Swatches -->
+              <button class="preset-item preset-color" data-type="temp" data-val="2700" style="--swatch-color: #f5d19e;" title="Caldo 2700K"></button>
+              <button class="preset-item preset-color" data-type="temp" data-val="3200" style="--swatch-color: #fde2b6;" title="Caldo 3200K"></button>
+              <button class="preset-item preset-color" data-type="temp" data-val="3800" style="--swatch-color: #fbe0be;" title="Naturale 3800K"></button>
+              <button class="preset-item preset-color" data-type="temp" data-val="5000" style="--swatch-color: #fff2e0;" title="Freddo 5000K"></button>
+              <button class="preset-item preset-color" data-type="color" data-hue="275" style="--swatch-color: #a824f8;" title="Viola"></button>
+              <button class="preset-item preset-color" data-type="color" data-hue="55" style="--swatch-color: #fef043;" title="Giallo"></button>
+              
+              <!-- Custom User Presets rendered dynamically here -->
+              <div id="custom-presets-container" class="custom-presets-container"></div>
 
-      document.querySelector("#set-color").addEventListener("click", () => {
-        const color = Object.fromEntries(
-          ["hue", "saturation", "value"].map((key) => [
-            key,
-            Number(document.querySelector(`#${key}`).value),
-          ])
-        );
-        callApi("/api/color", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(color),
-        });
-      });
+              <!-- Manage Presets Button (edit/clear) -->
+              <button class="preset-item preset-add-btn" id="btn-manage-presets" title="Gestisci preset" aria-label="Gestisci preset">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+            </div>
+          </section>
 
-      callApi("/api/state");
-    </script>
-  </body>
+          <!-- Main Light Control Card (Luminosità + Bianco/Colore) -->
+          <section class="card controls-card">
+            <!-- Brightness Row -->
+            <div class="control-header-row">
+              <span class="control-label">Luminosità</span>
+              <span class="control-value" id="brightness-label">100%</span>
+            </div>
+
+            <!-- Brightness Custom Slider -->
+            <div class="slider-wrapper" id="brightness-slider-wrapper">
+              <div class="slider-track brightness-track" id="brightness-track">
+                <div class="slider-fill brightness-fill" id="brightness-fill" style="width: 100%;"></div>
+              </div>
+              <input type="range" id="brightness-input" min="0" max="100" value="100" class="accessible-range" aria-label="Regola luminosità">
+            </div>
+
+            <!-- Tab Bar: Bianco vs Colore -->
+            <div class="tab-header-row">
+              <div class="tab-buttons">
+                <button class="tab-btn active" id="tab-btn-white" data-tab="white">Bianco</button>
+                <button class="tab-btn" id="tab-btn-color" data-tab="color">Colore</button>
+                <div class="tab-indicator" id="tab-indicator"></div>
+              </div>
+              <div class="tab-right-info" id="white-temp-indicator">3000K</div>
+            </div>
+
+            <!-- Tab Panels -->
+            <div class="tab-panels">
+              <!-- Panel Bianco: Temperature Slider -->
+              <div class="tab-panel active" id="panel-white">
+                <div class="slider-wrapper temp-slider-wrapper" id="temp-slider-wrapper">
+                  <div class="slider-track temp-track" id="temp-track">
+                    <!-- Graduated tick marks -->
+                    <div class="temp-ticks">
+                      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                    </div>
+                    <!-- Temperature Thumb -->
+                    <div class="slider-thumb temp-thumb" id="temp-thumb" style="left: 12.5%;"></div>
+                  </div>
+                  <input type="range" id="temp-input" min="2500" max="6500" value="3000" class="accessible-range" aria-label="Regola temperatura colore">
+                </div>
+              </div>
+
+              <!-- Panel Colore: Rainbow HSV Spectrum Slider -->
+              <div class="tab-panel" id="panel-color">
+                <div class="slider-wrapper color-slider-wrapper" id="color-slider-wrapper">
+                  <div class="slider-track color-track" id="color-track">
+                    <!-- Color Thumb -->
+                    <div class="slider-thumb color-thumb" id="color-thumb" style="left: 50%;"></div>
+                  </div>
+                  <input type="range" id="color-input" min="0" max="360" value="180" class="accessible-range" aria-label="Regola tonalità colore">
+                </div>
+              </div>
+            </div>
+          </section>
+
+
+
+        </div><!-- End controllable area -->
+
+        <!-- Subtle connection status indicator toast -->
+        <div id="connection-toast" class="connection-toast hidden">Connessione persa</div>
+
+      </main>
+    </div><!-- End #view-main -->
+
+
+    <!-- ====================================================================
+         VIEW: IMPOSTAZIONI DISPOSITIVO (Picture 9)
+         ==================================================================== -->
+    <div id="view-settings" class="app-view">
+      <header class="sub-nav">
+        <button class="nav-btn btn-view-back" data-target="view-main" aria-label="Indietro">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <h2 class="sub-nav-title">Impostazioni Dispositivo</h2>
+        <div class="nav-btn-placeholder"></div>
+      </header>
+
+      <div class="sub-view-content">
+        <!-- Group 1: Device Identity -->
+        <section class="card settings-group">
+          <!-- Nome Dispositivo -->
+          <div class="menu-list-row clickable-row" id="setting-row-name">
+            <span class="menu-label">Nome Dispositivo</span>
+            <div class="menu-right-meta">
+              <span class="setting-value-text" id="setting-value-name">Lampadina Smart</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </div>
+
+          <div class="menu-divider"></div>
+
+          <!-- Posizione -->
+          <div class="menu-list-row clickable-row" id="setting-row-location">
+            <span class="menu-label">Posizione</span>
+            <div class="menu-right-meta">
+              <span class="setting-value-text" id="setting-value-location">Camera da letto</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        <!-- Group 2: Advanced -->
+        <section class="card settings-group">
+          <!-- Gruppi -->
+          <div class="menu-list-row clickable-row" id="setting-row-groups">
+            <span class="menu-label">Gruppi</span>
+            <div class="menu-right-meta">
+              <span class="setting-value-text">0</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </div>
+
+          <div class="menu-divider"></div>
+
+          <!-- Informazioni Dispositivo -->
+          <div class="menu-list-row clickable-row" id="setting-row-info">
+            <span class="menu-label">Informazioni Dispositivo</span>
+            <div class="menu-right-meta">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        <!-- Danger Zone Button: Rimuovi -->
+        <button class="remove-device-btn" id="btn-remove-device">Rimuovi</button>
+      </div>
+    </div><!-- End #view-settings -->
+
+
+    <!-- ====================================================================
+         VIEW: SELEZIONA ICONA DISPOSITIVO (Picture 3)
+         ==================================================================== -->
+    <div id="view-select-icon" class="app-view">
+      <header class="sub-nav">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <h2 class="sub-nav-title">Seleziona Icona Dispositivo</h2>
+        <button class="nav-text-btn" id="btn-save-icon">Salva</button>
+      </header>
+
+      <div class="sub-view-content">
+        <div class="card icon-picker-card">
+          <div class="icon-grid-3x4" id="icon-picker-grid">
+            <!-- 1. Lampadina Standard -->
+            <button class="icon-option active" data-icon-id="bulb" aria-label="Lampadina classica">
+              <svg viewBox="0 0 48 48" class="picker-svg">
+                <circle cx="24" cy="20" r="14" fill="#f6b23a"/>
+                <path d="M19 32h10v4H19z" fill="#4a5568"/>
+                <path d="M21 36h6v3H21z" fill="#2d3748"/>
+                <path d="M24 16v6M20 18l4 4 4-4" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </button>
+
+            <!-- 2. Lampada da tavolo con paralume conico -->
+            <button class="icon-option" data-icon-id="table-lamp-cone" aria-label="Lampada da tavolo conica">
+              <svg viewBox="0 0 48 48" class="picker-svg">
+                <polygon points="17 24 31 24 28 14 20 14" fill="#fed776"/>
+                <ellipse cx="24" cy="30" rx="4.5" ry="5.5" fill="#90a4ae"/>
+                <rect x="22" y="24" width="4" height="3" fill="#cfd8dc"/>
+                <ellipse cx="24" cy="36" rx="6" ry="1.5" fill="#546e7a"/>
+              </svg>
+            </button>
+
+            <!-- 3. Lampada con paralume squadrato -->
+            <button class="icon-option" data-icon-id="table-lamp-square" aria-label="Lampada squadrata">
+              <svg viewBox="0 0 48 48" class="picker-svg">
+                <rect x="18" y="14" width="12" height="12" rx="1.5" fill="#fed776"/>
+                <rect x="23" y="26" width="2" height="10" fill="#374151"/>
+                <circle cx="21" cy="28" r="1.2" fill="#ef4444"/>
+                <rect x="19" y="36" width="10" height="2" rx="1" fill="#1f2937"/>
+              </svg>
+            </button>
+
+            <!-- 4. Lampada vintage con frange -->
+            <button class="icon-option" data-icon-id="vintage-lamp" aria-label="Lampada vintage">
+              <svg viewBox="0 0 48 48" class="picker-svg">
+                <polygon points="16 25 32 25 29 14 19 14" fill="#fde68a"/>
+                <path d="M16 25 Q 18 28, 20 25 Q 22 28, 24 25 Q 26 28, 28 25 Q 30 28, 32 25" stroke="#ef4444" stroke-width="1.8" fill="none"/>
+                <ellipse cx="24" cy="32" rx="4" ry="5" fill="#90a4ae"/>
+                <ellipse cx="24" cy="37" rx="5.5" ry="1.5" fill="#475569"/>
+              </svg>
+            </button>
+
+            <!-- 5. Lampada da scrivania a pantografo -->
+            <button class="icon-option" data-icon-id="desk-lamp" aria-label="Lampada pantografo">
+              <svg viewBox="0 0 48 48" class="picker-svg">
+                <path d="M22 17l6 6" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M28 23l-7 13" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M19 15l-4 4 5 5 4-4z" fill="#3b82f6"/>
+                <circle cx="28" cy="23" r="2.2" fill="#94a3b8"/>
+                <rect x="18" y="36" width="12" height="2.5" rx="1" fill="#64748b"/>
+              </svg>
+            </button>
+
+            <!-- 6. Lampada con fascio di luce -->
+            <button class="icon-option" data-icon-id="desk-lamp-lit" aria-label="Lampada con luce">
+              <svg viewBox="0 0 48 48" class="picker-svg">
+                <polygon points="15 36 26 18 33 18 22 36" fill="rgba(253, 224, 71, 0.35)"/>
+                <path d="M26 17l9 3-4 16" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                <rect x="24" y="15" width="12" height="4" rx="1.5" fill="#475569"/>
+                <rect x="29" y="36" width="10" height="2" rx="1" fill="#334155"/>
+              </svg>
+            </button>
+
+            <!-- 7. Piantana classica diritta -->
+            <button class="icon-option" data-icon-id="floor-lamp" aria-label="Piantana classica">
+              <svg viewBox="0 0 48 48" class="picker-svg">
+                <polygon points="18 22 30 22 28 15 20 15" fill="#fde68a"/>
+                <line x1="24" y1="22" x2="24" y2="38" stroke="#64748b" stroke-width="2.2" stroke-linecap="round"/>
+                <circle cx="21" cy="24" r="1.2" fill="#ef4444"/>
+                <rect x="19" y="38" width="10" height="2" rx="1" fill="#475569"/>
+              </svg>
+            </button>
+
+            <!-- 8. Piantana con faretto da lettura -->
+            <button class="icon-option" data-icon-id="floor-reading-lamp" aria-label="Piantana con luce lettura">
+              <svg viewBox="0 0 48 48" class="picker-svg">
+                <path d="M19 16 Q 24 20, 29 16" stroke="#fde68a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <line x1="24" y1="18" x2="24" y2="38" stroke="#64748b" stroke-width="2.2"/>
+                <path d="M24 23 Q 27 25, 29 24" stroke="#64748b" stroke-width="2" fill="none"/>
+                <ellipse cx="29" cy="24" rx="2" ry="1.5" fill="#fde68a"/>
+                <rect x="19" y="38" width="10" height="2" rx="1" fill="#475569"/>
+              </svg>
+            </button>
+
+            <!-- 9. Piantana moderna squadrata -->
+            <button class="icon-option" data-icon-id="floor-square-lamp" aria-label="Piantana squadrata">
+              <svg viewBox="0 0 48 48" class="picker-svg">
+                <rect x="20" y="14" width="8" height="9" rx="1" fill="#fde68a"/>
+                <line x1="24" y1="23" x2="24" y2="38" stroke="#64748b" stroke-width="2" stroke-dasharray="2,2"/>
+                <rect x="19" y="38" width="10" height="2" rx="1" fill="#475569"/>
+              </svg>
+            </button>
+
+            <!-- 10. Lampadario a sospensione a campana -->
+            <button class="icon-option" data-icon-id="pendant-dome" aria-label="Lampadario a campana">
+              <svg viewBox="0 0 48 48" class="picker-svg">
+                <line x1="24" y1="12" x2="24" y2="24" stroke="#475569" stroke-width="2"/>
+                <path d="M16 30 C 16 24, 32 24, 32 30 Z" fill="#90caf9"/>
+                <ellipse cx="24" cy="30" rx="8" ry="2" fill="#64b5f6"/>
+                <circle cx="24" cy="31" r="2.5" fill="#fde68a"/>
+              </svg>
+            </button>
+
+            <!-- 11. Barra a 3 faretti da soffitto -->
+            <button class="icon-option" data-icon-id="track-spots" aria-label="Barra 3 faretti">
+              <svg viewBox="0 0 48 48" class="picker-svg">
+                <rect x="12" y="24" width="24" height="2" fill="#475569"/>
+                <line x1="16" y1="20" x2="16" y2="24" stroke="#475569" stroke-width="1.8"/>
+                <line x1="32" y1="20" x2="32" y2="24" stroke="#475569" stroke-width="1.8"/>
+                <!-- 3 spots -->
+                <path d="M13 28l3-3 3 3z" fill="#90caf9"/>
+                <circle cx="14.5" cy="27" r="1.5" fill="#fde68a"/>
+                <path d="M21 28l3-3 3 3z" fill="#90caf9"/>
+                <circle cx="22.5" cy="27" r="1.5" fill="#fde68a"/>
+                <path d="M29 28l3-3 3 3z" fill="#90caf9"/>
+                <circle cx="30.5" cy="27" r="1.5" fill="#fde68a"/>
+              </svg>
+            </button>
+
+            <!-- 12. Lampadario a 3 lampade a sospensione -->
+            <button class="icon-option" data-icon-id="triple-pendant" aria-label="Lampadario triplo">
+              <svg viewBox="0 0 48 48" class="picker-svg">
+                <rect x="14" y="23" width="20" height="2" fill="#475569"/>
+                <line x1="17" y1="25" x2="17" y2="30" stroke="#475569" stroke-width="1.5"/>
+                <line x1="24" y1="25" x2="24" y2="30" stroke="#475569" stroke-width="1.5"/>
+                <line x1="31" y1="25" x2="31" y2="30" stroke="#475569" stroke-width="1.5"/>
+                <rect x="15" y="30" width="4" height="6" rx="1.5" fill="#90caf9"/>
+                <rect x="22" y="30" width="4" height="6" rx="1.5" fill="#90caf9"/>
+                <rect x="29" y="30" width="4" height="6" rx="1.5" fill="#90caf9"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div><!-- End #view-select-icon -->
+
+
+    <!-- ====================================================================
+         VIEW: NOME DEL DISPOSITIVO (Picture 4)
+         ==================================================================== -->
+    <div id="view-device-name" class="app-view">
+      <header class="sub-nav">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <h2 class="sub-nav-title">Nome del vostro dispositivo</h2>
+        <button class="nav-text-btn" id="btn-save-name">Salva</button>
+      </header>
+
+      <div class="sub-view-content">
+        <p class="view-intro-hint">Dai un nome al tuo dispositivo per facilitarne l'identificazione.</p>
+        <div class="card text-input-card">
+          <div class="input-clear-wrapper">
+            <input type="text" id="input-device-name" class="native-text-input" value="Lampadina Smart" maxlength="32" placeholder="Nome dispositivo">
+            <button class="input-clear-btn" id="btn-clear-name" aria-label="Cancella testo">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                <circle cx="12" cy="12" r="9" fill="#3f3f46"></circle>
+                <line x1="9" y1="9" x2="15" y2="15" stroke="#ffffff"></line>
+                <line x1="15" y1="9" x2="9" y2="15" stroke="#ffffff"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div><!-- End #view-device-name -->
+
+
+    <!-- ====================================================================
+         VIEW: POSIZIONE (Picture 5)
+         ==================================================================== -->
+    <div id="view-location" class="app-view">
+      <header class="sub-nav">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <h2 class="sub-nav-title">Posizione</h2>
+        <button class="nav-text-btn" id="btn-save-location">Salva</button>
+      </header>
+
+      <div class="sub-view-content">
+        <section class="card settings-group" id="location-options-group">
+          <div class="menu-list-row location-row active" data-location="Camera da letto">
+            <span class="menu-label">Camera da letto</span>
+            <svg class="check-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+
+          <div class="menu-divider"></div>
+
+          <div class="menu-list-row location-row" data-location="Soggiorno">
+            <span class="menu-label">Soggiorno</span>
+            <svg class="check-icon hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+
+          <div class="menu-divider"></div>
+
+          <div class="menu-list-row location-row" data-location="Cucina">
+            <span class="menu-label">Cucina</span>
+            <svg class="check-icon hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+
+          <div class="menu-divider"></div>
+
+          <div class="menu-list-row location-row" data-location="Studio">
+            <span class="menu-label">Studio</span>
+            <svg class="check-icon hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+        </section>
+
+        <section class="card settings-group">
+          <div class="menu-list-row clickable-row" id="row-custom-location">
+            <span class="menu-label">Personalizza</span>
+            <div class="menu-right-meta">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </div>
+          <!-- Expandable custom location input -->
+          <div class="custom-location-box hidden" id="custom-location-box">
+            <input type="text" id="input-custom-location" class="native-text-input" placeholder="Inserisci stanza..." maxlength="25">
+          </div>
+        </section>
+      </div>
+    </div><!-- End #view-location -->
+
+
+    <!-- ====================================================================
+         VIEW: STATO DEFAULT (Picture 6)
+         ==================================================================== -->
+    <div id="view-default-state" class="app-view">
+      <header class="sub-nav">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <h2 class="sub-nav-title">Stato Default</h2>
+        <div class="nav-btn-placeholder"></div>
+      </header>
+
+      <div class="sub-view-content">
+        <p class="section-group-label">Quando si accende dall'app o dall'alimentazione, il dispositivo Tapo andrà su:</p>
+        <section class="card settings-group">
+          <div class="menu-list-row selectable-option active" data-group="on-state" data-val="last-on">
+            <span class="menu-label">Ultimo stato &quot;On&quot;</span>
+            <svg class="check-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+
+          <div class="menu-divider"></div>
+
+          <div class="menu-list-row selectable-option" data-group="on-state" data-val="custom">
+            <span class="menu-label">Illuminazione Personalizzata</span>
+            <svg class="check-icon hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+        </section>
+
+        <p class="section-group-label">Quando l'alimentazione si interrompe ma ritorna, vuoi che il dispositivo Tapo:</p>
+        <section class="card settings-group">
+          <div class="menu-list-row selectable-option active" data-group="recovery-state" data-val="turn-on">
+            <span class="menu-label">Accendi</span>
+            <svg class="check-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+
+          <div class="menu-divider"></div>
+
+          <div class="menu-list-row selectable-option" data-group="recovery-state" data-val="toggle-last">
+            <span class="menu-label">Attiva/Disattiva (se il suo stato precedente era attivo e viceversa.)</span>
+            <svg class="check-icon hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+        </section>
+
+        <div class="info-notice-card">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#60a5fa" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span>La configurazione a livello di firmware hardware non-volatile può essere sincronizzata in via definitiva con l'app ufficiale Tapo.</span>
+        </div>
+      </div>
+    </div><!-- End #view-default-state -->
+
+
+    <!-- ====================================================================
+         VIEW: ACCENSIONE / SPEGNIMENTO GRADUALE (Picture 7)
+         ==================================================================== -->
+    <div id="view-fade" class="app-view">
+      <header class="sub-nav">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <h2 class="sub-nav-title">Accensione/spegnimento graduale dell...</h2>
+        <div class="nav-btn-placeholder"></div>
+      </header>
+
+      <div class="sub-view-content">
+        <p class="view-intro-hint">Accendere e spegnere lentamente la luce per ridurre l'affaticamento degli occhi.</p>
+
+        <section class="card settings-group">
+          <!-- Switch 1: Accesa gradualmente -->
+          <div class="menu-list-row">
+            <span class="menu-label">Luce accesa gradualmente</span>
+            <label class="ios-switch">
+              <input type="checkbox" id="toggle-fade-on">
+              <span class="ios-slider"></span>
+            </label>
+          </div>
+
+          <div class="menu-divider"></div>
+
+          <!-- Switch 2: Spenta gradualmente -->
+          <div class="menu-list-row">
+            <span class="menu-label">Luce spenta gradualmente</span>
+            <label class="ios-switch">
+              <input type="checkbox" id="toggle-fade-off">
+              <span class="ios-slider"></span>
+            </label>
+          </div>
+        </section>
+      </div>
+    </div><!-- End #view-fade -->
+
+
+    <!-- ====================================================================
+         VIEW: GRUPPI (Picture 8)
+         ==================================================================== -->
+    <div id="view-groups" class="app-view">
+      <header class="sub-nav">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <h2 class="sub-nav-title">Gruppi</h2>
+        <div class="nav-btn-placeholder"></div>
+      </header>
+
+      <div class="sub-view-content groups-content-center">
+        <p class="view-intro-hint align-center">Aggiungi i tuoi dispositivi a un gruppo e controllali contemporaneamente. Ogni dispositivo sarà comunque controllabile anche individualmente.</p>
+
+        <!-- Bubble Artwork Reproduction from Picture 8 -->
+        <div class="groups-art-container">
+          <div class="art-bubble bubble-left">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="#ffffff">
+              <polygon points="7 14 17 14 15 7 9 7"/>
+              <line x1="12" y1="14" x2="12" y2="20" stroke="#ffffff" stroke-width="2"/>
+              <rect x="9" y="20" width="6" height="1.5" rx="0.5"/>
+            </svg>
+          </div>
+          <div class="art-bubble bubble-center">
+            <!-- Outlet & Switch icons -->
+            <div class="bubble-inner-icons">
+              <div class="mini-wall-socket">
+                <span></span><span></span>
+              </div>
+              <div class="mini-wall-switch">
+                <div class="switch-dot"></div>
+              </div>
+            </div>
+          </div>
+          <div class="art-bubble bubble-right">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="#fed776">
+              <path d="M12 3a6 6 0 0 0-6 6c0 2.2 1.2 4.1 3 5.1V16a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.9c1.8-1 3-2.9 3-5.1a6 6 0 0 0-6-6z"/>
+            </svg>
+          </div>
+          <div class="art-bubble bubble-tiny"></div>
+        </div>
+
+        <p class="groups-empty-text">Questo dispositivo non è stato aggiunto a nessun gruppo.</p>
+
+        <!-- Tapo official app hint pill -->
+        <div class="cloud-app-tag-pill">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+          </svg>
+          <span>Gestito da Cloud Tapo</span>
+        </div>
+
+        <button class="dark-pill-action-btn" id="btn-add-group">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Aggiungi un gruppo</span>
+        </button>
+      </div>
+    </div><!-- End #view-groups -->
+
+
+    <!-- ====================================================================
+         VIEW: AZIONI SMART (Picture 11)
+         ==================================================================== -->
+    <div id="view-smart-actions-sub" class="app-view">
+      <header class="sub-nav">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <h2 class="sub-nav-title">Azioni Smart</h2>
+        <button class="nav-btn" id="btn-add-smart-action" aria-label="Aggiungi">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+            <circle cx="12" cy="12" r="9"></circle>
+            <line x1="12" y1="8" x2="12" y2="16"></line>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+        </button>
+      </header>
+
+      <div class="sub-view-content">
+        <!-- Sub-tabs: Consigliato vs Coinvolto -->
+        <div class="smart-actions-tabs">
+          <button class="smart-tab-btn" id="tab-smart-rec">Consigliato</button>
+          <button class="smart-tab-btn active" id="tab-smart-active">Coinvolto</button>
+        </div>
+
+        <h3 class="section-mini-header">Scorciatoie</h3>
+
+        <!-- Lampadina Shortcut Card -->
+        <div class="smart-shortcut-card">
+          <div class="shortcut-icon-circle">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="#5eead4">
+              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+            </svg>
+          </div>
+          <span class="shortcut-title">Lampadina</span>
+          <button class="shortcut-menu-btn" id="btn-shortcut-menu" aria-label="Opzioni">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <circle cx="6" cy="12" r="2"></circle>
+              <circle cx="12" cy="12" r="2"></circle>
+              <circle cx="18" cy="12" r="2"></circle>
+            </svg>
+          </button>
+        </div>
+
+        <div class="info-notice-card mt-24">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#60a5fa" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span>Le routine complesse e le automazioni con sensori Tapo sono configurabili e gestite dall'app ufficiale Tapo.</span>
+        </div>
+      </div>
+    </div><!-- End #view-smart-actions-sub -->
+
+
+    <!-- ====================================================================
+         VIEW: INFORMAZIONI DISPOSITIVO
+         ==================================================================== -->
+    <div id="view-device-info" class="app-view">
+      <header class="sub-nav">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <h2 class="sub-nav-title">Informazioni Dispositivo</h2>
+        <div class="nav-btn-placeholder"></div>
+      </header>
+
+      <div class="sub-view-content">
+        <section class="card settings-group">
+          <div class="menu-list-row">
+            <span class="menu-label">Modello</span>
+            <span class="setting-value-text" id="info-device-model">Tapo L535</span>
+          </div>
+          <div class="menu-divider"></div>
+
+          <div class="menu-list-row">
+            <span class="menu-label">Tipo Dispositivo</span>
+            <span class="setting-value-text">Lampadina Smart Multicolor</span>
+          </div>
+          <div class="menu-divider"></div>
+
+          <div class="menu-list-row">
+            <span class="menu-label">Indirizzo IP</span>
+            <span class="setting-value-text" id="info-device-ip">192.168.0.5</span>
+          </div>
+          <div class="menu-divider"></div>
+
+          <div class="menu-list-row">
+            <span class="menu-label">Indirizzo MAC</span>
+            <span class="setting-value-text" id="info-device-mac">B0-19-21-8A-6B-D0</span>
+          </div>
+          <div class="menu-divider"></div>
+
+          <div class="menu-list-row">
+            <span class="menu-label">Versione Hardware</span>
+            <span class="setting-value-text" id="info-device-hw">1.0</span>
+          </div>
+          <div class="menu-divider"></div>
+
+          <div class="menu-list-row">
+            <span class="menu-label">Segnale Wi-Fi</span>
+            <span class="setting-value-text text-green" id="info-device-rssi">-52 dBm (Eccellente)</span>
+          </div>
+          <div class="menu-divider"></div>
+
+          <div class="menu-list-row">
+            <span class="menu-label">Protocollo di rete</span>
+            <span class="setting-value-text">Tapo KLAP + Matter</span>
+          </div>
+        </section>
+      </div>
+    </div><!-- End #view-device-info -->
+
+
+    <!-- ====================================================================
+         VIEW: CODICE INSTALLAZIONE MATTER (Picture 10)
+         ==================================================================== -->
+    <div id="view-matter" class="app-view">
+      <header class="sub-nav">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <h2 class="sub-nav-title">Codice Installazione Matter</h2>
+        <div class="nav-btn-placeholder"></div>
+      </header>
+
+      <div class="sub-view-content">
+        <!-- Matter Main Card -->
+        <div class="card matter-card">
+          <!-- Device Header -->
+          <div class="matter-device-header">
+            <div class="matter-icon-wrap">
+              <svg viewBox="0 0 32 32" width="36" height="36">
+                <ellipse cx="16" cy="14" rx="10" ry="11" fill="url(#matter-bulb-grad)"/>
+                <defs>
+                  <linearGradient id="matter-bulb-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#38bdf8"/>
+                    <stop offset="50%" stop-color="#ec4899"/>
+                    <stop offset="100%" stop-color="#eab308"/>
+                  </linearGradient>
+                </defs>
+                <rect x="12" y="24" width="8" height="5" rx="1" fill="#64748b"/>
+              </svg>
+            </div>
+            <div class="matter-device-info">
+              <h3 class="matter-device-model">Tapo L535</h3>
+              <p class="matter-device-alias" id="matter-device-alias">Lampadina Smart</p>
+              <p class="matter-device-mac">MAC: B0-19-21-8A-6B-D0</p>
+            </div>
+          </div>
+
+          <!-- Matter Black QR Badge Box -->
+          <div class="matter-qr-badge" id="matter-qr-badge-element">
+            <!-- Matter Logo -->
+            <div class="matter-brand-header">
+              <svg viewBox="0 0 40 40" width="32" height="32" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round">
+                <circle cx="20" cy="8" r="3.2" fill="#ffffff" stroke="none"></circle>
+                <circle cx="9.6" cy="26" r="3.2" fill="#ffffff" stroke="none"></circle>
+                <circle cx="30.4" cy="26" r="3.2" fill="#ffffff" stroke="none"></circle>
+                <line x1="20" y1="12" x2="20" y2="24"></line>
+                <line x1="12" y1="24.5" x2="22" y2="19"></line>
+                <line x1="28" y1="24.5" x2="18" y2="19"></line>
+              </svg>
+              <span class="matter-brand-text">matter</span>
+            </div>
+
+            <!-- Crisp SVG QR Code for 3222-804-6472 -->
+            <div class="matter-qr-svg-wrapper">
+              <svg viewBox="0 0 160 160" width="160" height="160" class="qr-svg-canvas">
+                <rect width="160" height="160" fill="#ffffff"/>
+                <!-- Corner 1 (Top Left) -->
+                <rect x="12" y="12" width="40" height="40" fill="#000000"/>
+                <rect x="18" y="18" width="28" height="28" fill="#ffffff"/>
+                <rect x="24" y="24" width="16" height="16" fill="#000000"/>
+                
+                <!-- Corner 2 (Top Right) -->
+                <rect x="108" y="12" width="40" height="40" fill="#000000"/>
+                <rect x="114" y="18" width="28" height="28" fill="#ffffff"/>
+                <rect x="120" y="24" width="16" height="16" fill="#000000"/>
+                
+                <!-- Corner 3 (Bottom Left) -->
+                <rect x="12" y="108" width="40" height="40" fill="#000000"/>
+                <rect x="18" y="114" width="28" height="28" fill="#ffffff"/>
+                <rect x="24" y="120" width="16" height="16" fill="#000000"/>
+
+                <!-- QR Data Matrix Pattern -->
+                <rect x="60" y="14" width="8" height="8" fill="#000000"/>
+                <rect x="76" y="14" width="8" height="8" fill="#000000"/>
+                <rect x="92" y="14" width="8" height="8" fill="#000000"/>
+                <rect x="68" y="24" width="8" height="8" fill="#000000"/>
+                <rect x="84" y="24" width="8" height="8" fill="#000000"/>
+                <rect x="60" y="34" width="8" height="8" fill="#000000"/>
+                <rect x="76" y="34" width="8" height="8" fill="#000000"/>
+
+                <rect x="14" y="60" width="8" height="8" fill="#000000"/>
+                <rect x="24" y="68" width="8" height="8" fill="#000000"/>
+                <rect x="34" y="60" width="8" height="8" fill="#000000"/>
+                <rect x="44" y="68" width="8" height="8" fill="#000000"/>
+                <rect x="60" y="60" width="16" height="16" fill="#000000"/>
+                <rect x="84" y="60" width="8" height="16" fill="#000000"/>
+                <rect x="100" y="60" width="16" height="8" fill="#000000"/>
+                <rect x="124" y="60" width="8" height="8" fill="#000000"/>
+                <rect x="136" y="68" width="8" height="8" fill="#000000"/>
+
+                <rect x="60" y="84" width="8" height="8" fill="#000000"/>
+                <rect x="76" y="84" width="16" height="8" fill="#000000"/>
+                <rect x="100" y="84" width="8" height="16" fill="#000000"/>
+                <rect x="116" y="84" width="16" height="8" fill="#000000"/>
+                <rect x="140" y="84" width="8" height="8" fill="#000000"/>
+
+                <rect x="60" y="108" width="8" height="8" fill="#000000"/>
+                <rect x="76" y="108" width="8" height="16" fill="#000000"/>
+                <rect x="92" y="108" width="16" height="8" fill="#000000"/>
+                <rect x="116" y="108" width="8" height="8" fill="#000000"/>
+                <rect x="132" y="108" width="16" height="16" fill="#000000"/>
+
+                <rect x="68" y="128" width="16" height="8" fill="#000000"/>
+                <rect x="92" y="128" width="8" height="8" fill="#000000"/>
+                <rect x="108" y="128" width="16" height="16" fill="#000000"/>
+                <rect x="60" y="138" width="8" height="8" fill="#000000"/>
+                <rect x="80" y="138" width="8" height="8" fill="#000000"/>
+              </svg>
+            </div>
+
+            <!-- Code String -->
+            <div class="matter-code-number">3222-804-6472</div>
+          </div>
+
+          <!-- Copia Codice Button -->
+          <button class="matter-copy-pill-btn" id="btn-copy-matter-code">Copia Codice</button>
+        </div>
+
+        <p class="matter-bottom-expl">Scansiona questo codice QR per collegare il tuo dispositivo ad altri ecosistemi tramite Matter. Le funzionalità possono variare in base al supporto di una piattaforma per Matter.<br>Per saperne di più su Matter, tocca <span class="text-blue">Qui</span>.</p>
+
+        <!-- Salva Codice QR Button -->
+        <button class="dark-pill-action-btn mt-20" id="btn-save-matter-qr">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Salva Codice QR</span>
+        </button>
+      </div>
+    </div><!-- End #view-matter -->
+
+
+    <!-- ====================================================================
+         MODAL: GESTISCI PRESET (Manage / Add / Clear)
+         ==================================================================== -->
+    <div id="modal-custom-preset" class="native-modal-backdrop hidden">
+      <div class="native-modal-sheet">
+        <div class="modal-drag-bar"></div>
+        <div class="modal-header">
+          <h3 class="modal-title">Gestisci Preset</h3>
+          <button class="modal-close-btn" id="btn-close-preset-modal" aria-label="Chiudi">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Existing Custom Presets Management -->
+          <div id="modal-presets-manage-section">
+            <div class="modal-section-label">I tuoi preset personalizzati</div>
+            <div id="modal-custom-presets-list" class="modal-custom-presets-list">
+              <span class="modal-no-presets-hint" id="modal-no-presets-hint">Nessun preset personalizzato ancora.</span>
+            </div>
+            <button class="modal-clear-btn" id="btn-clear-all-presets">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+              </svg>
+              Elimina tutti i preset
+            </button>
+          </div>
+
+          <div class="modal-section-divider"></div>
+          <div class="modal-section-label">Aggiungi nuovo preset</div>
+
+          <!-- Live Swatch Preview -->
+          <div class="custom-preset-preview-wrap">
+            <div class="custom-preset-preview-circle" id="modal-swatch-preview"></div>
+            <div class="custom-preset-preview-details">
+              <span class="preview-mode-tag" id="modal-preset-tag">Colore HSV</span>
+              <span class="preview-val-text" id="modal-preset-val-text">Tonalità: 180°</span>
+            </div>
+          </div>
+
+          <!-- Quick Action: Usa Impostazione Attuale della lampadina -->
+          <button class="preset-use-current-btn" id="btn-preset-use-current">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+            </svg>
+            <span>Copia stato attuale della luce</span>
+          </button>
+
+          <!-- Type Selector: Colore vs Bianco -->
+          <div class="segmented-control mt-16">
+            <button class="seg-btn active" id="modal-tab-color" type="button">Colore Arcobaleno</button>
+            <button class="seg-btn" id="modal-tab-white" type="button">Tonalità Bianca (Kelvin)</button>
+          </div>
+
+          <!-- Interactive Sliders in Modal -->
+          <div class="modal-slider-box" id="modal-box-color">
+            <label class="modal-slider-label">Tonalità di Colore (0° - 360°)</label>
+            <input type="range" id="modal-color-slider" min="0" max="360" value="180" class="rainbow-range-slider">
+          </div>
+
+          <div class="modal-slider-box hidden" id="modal-box-white">
+            <label class="modal-slider-label">Temperatura di Colore (2500K - 6500K)</label>
+            <input type="range" id="modal-white-slider" min="2500" max="6500" value="3200" class="temp-range-slider">
+          </div>
+
+          <div class="modal-input-field">
+            <label for="modal-preset-name">Nome Preset (Opzionale)</label>
+            <input type="text" id="modal-preset-name" placeholder="Es. Relax, Lettura, Cinema..." maxlength="20">
+          </div>
+
+          <button class="modal-confirm-btn" id="btn-save-custom-preset">Aggiungi a Mio Preset</button>
+        </div>
+      </div>
+    </div><!-- End #modal-custom-preset -->
+
+
+    <!-- ====================================================================
+         NATIVE TOAST NOTIFICATIONS
+         ==================================================================== -->
+    <div id="app-toast" class="app-toast hidden"></div>
+
+  </div><!-- End .app-wrapper -->
+
+  <script src="/app.js"></script>
+</body>
 </html>
