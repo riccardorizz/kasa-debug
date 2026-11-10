@@ -30,6 +30,9 @@
     isUserInteracting: false,
     interactionTimeout: null,
     isOffline: false,
+    language: (typeof window.getLanguage === 'function' ? window.getLanguage() : (localStorage.getItem('tapo_language') || 'it')),
+    pendingLanguage: null,
+    pendingLocation: null,
 
     // Local Persistent Settings (Customizations)
     deviceName: localStorage.getItem('tapo_device_name') || 'Lampadina Smart',
@@ -135,6 +138,10 @@
     settingRowName: document.getElementById('setting-row-name'),
     settingValueName: document.getElementById('setting-value-name'),
     settingRowLocation: document.getElementById('setting-row-location'),
+    settingRowLanguage: document.getElementById('setting-row-language'),
+    settingValueLanguage: document.getElementById('setting-value-language'),
+    btnSaveLanguage: document.getElementById('btn-save-language'),
+    languageRows: document.querySelectorAll('.language-row'),
     settingValueLocation: document.getElementById('setting-value-location'),
     settingRowDefaultState: null,
     settingValueDefaultState: null,
@@ -355,9 +362,14 @@
   async function fetchApi(path, options = {}) {
     try {
       const res = await fetch(path, options);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) {
+        const errorKey = { bulb_unreachable: 'errors.bulbUnreachable', bulb_communication_error: 'errors.communication', bulb_state_read_error: 'errors.stateRead' }[payload?.code] || 'errors.generic';
+        if (typeof window.t === 'function') showToast(t(errorKey));
+        throw new Error(payload?.code || `HTTP ${res.status}`);
+      }
       setOfflineState(false);
-      return await res.json();
+      return payload;
     } catch (err) {
       setOfflineState(true);
       return null;
@@ -682,7 +694,7 @@
     savePresets(state.presets);
     renderManagePresetsList();
     renderMainPresets();
-    showToast(`Preset "${name}" eliminato`);
+    showToast(t('presets.deleted'));
   }
 
   /**
@@ -705,14 +717,14 @@
         btn.dataset.hue = preset.hue;
         btn.dataset.brightness = preset.brightness || 100;
         swatchColor = `hsl(${preset.hue}, ${preset.saturation || 100}%, 50%)`;
-        btn.title = preset.name || `Colore ${preset.hue}°`;
+        btn.title = preset.name || `${t('presets.default', { index: index + 1 })} · ${preset.hue}°`;
       } else {
         btn.dataset.type = 'temp';
         btn.dataset.val = preset.temp;
         btn.dataset.brightness = preset.brightness || 100;
         const rgb = kelvinToRgb(preset.temp || 2700);
         swatchColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
-        btn.title = preset.name || `Bianco ${preset.temp}K`;
+        btn.title = preset.name || `${t('presets.default', { index: index + 1 })} · ${preset.temp}K`;
       }
       btn.style.setProperty('--swatch-color', swatchColor);
 
@@ -799,7 +811,7 @@
           </svg>
         </button>
         <div class="preset-manage-row-left">
-          <div class="preset-manage-row-name">${preset.name || `Preset ${idx + 1}`}</div>
+          <div class="preset-manage-row-name">${preset.name || t('presets.default', { index: idx + 1 })}</div>
           <div class="preset-manage-row-meta">${metaHtml}</div>
         </div>
         <svg class="preset-manage-row-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
@@ -1718,8 +1730,10 @@
 
     // 2. Location
     const loc = state.deviceLocation || 'Camera da letto';
-    if (el.heroDeviceLocation) el.heroDeviceLocation.textContent = loc;
-    if (el.settingValueLocation) el.settingValueLocation.textContent = loc;
+    const locationLabels = { 'Camera da letto': 'Bedroom', 'Soggiorno': 'Living room', 'Cucina': 'Kitchen', 'Studio': 'Studio' };
+    const displayedLocation = state.language === 'en' ? (locationLabels[loc] || loc) : loc;
+    if (el.heroDeviceLocation) el.heroDeviceLocation.textContent = displayedLocation;
+    if (el.settingValueLocation) el.settingValueLocation.textContent = displayedLocation;
 
     // Checkmark in location subview
     document.querySelectorAll('.location-row').forEach(row => {
@@ -1744,6 +1758,51 @@
   }
 
   // ==========================================================================
+  // Language and deferred settings changes
+  const translationPairs = [
+    ['Impostazioni Dispositivo', 'Device Settings'], ['Nome Dispositivo', 'Device Name'], ['Lingua', 'Language'], ['Posizione', 'Location'], ['Informazioni Dispositivo', 'Device Information'],
+    ['Italiano', 'Italian'], ['Inglese', 'English'], ['English', 'English'], ['Salva', 'Save'], ['Indietro', 'Back'], ['Personalizza', 'Custom'], ['Inserisci stanza...', 'Enter room...'],
+    ['Luminosità', 'Brightness'], ['Bianco', 'White'], ['Colore', 'Color'], ['Mio Preset', 'My Presets'], ['Gestisci preset', 'Manage presets'], ['Accensione', 'Power'], ['Lampadina', 'Bulb'], ['Regola luminosità', 'Adjust brightness'], ['Regola temperatura colore', 'Adjust color temperature'], ['Regola tonalità colore', 'Adjust color hue'], ['Accendi o spegni la lampadina', 'Turn the bulb on or off'], ['Camera da letto', 'Bedroom'], ['Soggiorno', 'Living room'], ['Cucina', 'Kitchen'], ['Studio', 'Studio'], ['Impostazioni', 'Settings'], ['Salva', 'Save'], ['Aggiungi', 'Add'], ['Annulla', 'Cancel'], ['Conferma', 'Confirm'], ['Tonalità', 'Hue'], ['Temperatura', 'Temperature'], ['Colore HSV', 'HSV Color'], ['Tonalità: 180°', 'Hue: 180°'], ['Personalizzata', 'Custom'], ['Ultimo stato "On"', 'Last "On" state'], ['Accendi', 'Turn on'], ['Spegni', 'Turn off'], ['Accensione/spegnimento graduale dell...', 'Gradual turn on/off...'], ['Luce accesa gradualmente', 'Turn on gradually'], ['Luce spenta gradualmente', 'Turn off gradually'], ['Quando l\'alimentazione si interrompe ma ritorna, vuoi che il dispositivo Tapo:', 'When power is interrupted and returns, should the Tapo device:'], ['Informazioni', 'Information'], ['Party', 'Party'], ['Tema', 'Theme'], ['Power', 'Power'], ['Lampadina', 'Bulb'], ['Gestisci preset', 'Manage presets'], ['Accensione', 'Power'], ['Dispositivo spento', 'Device switched off'], ['Accendi la lampadina per usare i controlli colore.', 'Turn on the bulb to use color controls.'], ['La lampadina è offline o non raggiungibile.', 'The bulb is offline or unreachable.'], ['Preset rimosso', 'Preset removed'], ['Preset eliminato', 'Preset deleted'], ['Impostazione luce copiata!', 'Light setting copied!'], ['Nuovo preset aggiunto a "Mio Preset"!', 'New preset added to "My Presets"!'], ['Preset modificato', 'Preset updated'], ['Nessun preset personalizzato ancora.', 'No custom presets yet.'], ['Elimina tutti i preset', 'Delete all presets'], ['Tonalità di Colore (0° - 360°)', 'Color Hue (0° - 360°)'], ['Temperatura di Colore (2500K - 6500K)', 'Color Temperature (2500K - 6500K)'], ['Colore Arcobaleno', 'Rainbow Color'], ['Tonalità Bianca (Kelvin)', 'White Temperature (Kelvin)'], ['Copia stato attuale della luce', 'Copy current light state'], ['Aggiungi a Mio Preset', 'Add to My Presets'], ['Nessun preset. Tocca "Nuovo Preset" qui sotto per aggiungerne uno.', 'No presets. Tap "New Preset" below to add one.'], ['Elimina preset', 'Delete preset'], ['Elimina', 'Delete'], ['Nuovo Preset', 'New Preset'], ['Riordina', 'Reorder'], ['Fatto', 'Done'], ['Modifica non salvata', 'Unsaved change'], ['Seleziona Icona Dispositivo', 'Select Device Icon'], ['Icona salvata e aggiornata nella schermata Home!', 'Icon saved and updated on the Home screen!'], ['Preset salvato', 'Preset saved'], ['Ordine preset salvato', 'Preset order saved'], ['Nome del vostro dispositivo', 'Your device name'], ['Dai un nome al tuo dispositivo per facilitarne l\'identificazione.', 'Name your device to make it easier to identify.'], ['Nome dispositivo', 'Device name'], ['Inserisci stanza...', 'Enter room...'], ['Personalizza', 'Custom'], ['Lingua salvata', 'Language saved'], ['Posizione salvata', 'Location saved'], ['Impostazioni Dispositivo', 'Device Settings'], ['Nome Dispositivo', 'Device Name'], ['Lingua', 'Language'], ['Posizione', 'Location'], ['Informazioni Dispositivo', 'Device Information'], ['Italiano', 'Italian'], ['Inglese', 'English'], ['English', 'English'], ['Salva', 'Save'], ['Indietro', 'Back'], ['Posizione', 'Location'], ['Lingua', 'Language'], ['Nome', 'Name'], ['Dispositivo', 'Device'], ['Preset', 'Preset'], ['Mio', 'My'], ['Bianco', 'White'], ['Colore', 'Color'], ['Luminosità', 'Brightness'], ['Power', 'Power'], ['Accensione', 'Power'], ['Camera da letto', 'Bedroom'], ['Soggiorno', 'Living room'], ['Cucina', 'Kitchen'], ['Studio', 'Studio'], ['Lampadina Smart', 'Smart Bulb'], ['Accendi o spegni la lampadina', 'Turn the bulb on or off'], ['Regola luminosità', 'Adjust brightness'], ['Regola temperatura colore', 'Adjust color temperature'], ['Regola tonalità colore', 'Adjust color hue'], ['Lampadina', 'Bulb'], ['Dispositivo non connesso', 'Device not connected'], ['Connessione persa', 'Connection lost'], ['Nessun preset. Tocca "Nuovo Preset" qui sotto per aggiungerne uno.', 'No presets. Tap "New Preset" below to add one.'], ['Tonalità di Colore (0° - 360°)', 'Color Hue (0° - 360°)'], ['Temperatura di Colore (2500K - 6500K)', 'Color Temperature (2500K - 6500K)'], ['Colore Arcobaleno', 'Rainbow Color'], ['Tonalità Bianca (Kelvin)', 'White Temperature (Kelvin)'], ['Copia stato attuale della luce', 'Copy current light state'], ['Aggiungi a Mio Preset', 'Add to My Presets'], ['Nessun preset personalizzato ancora.', 'No custom presets yet.'], ['Elimina tutti i preset', 'Delete all presets'],
+    ['Dispositivo non connesso', 'Device not connected'], ['Connessione persa', 'Connection lost'], ['Camera da letto', 'Bedroom'], ['Soggiorno', 'Living room'], ['Cucina', 'Kitchen'],
+    ['Nome del vostro dispositivo', 'Your device name'], ['Dai un nome al tuo dispositivo per facilitarne l\'identificazione.', 'Name your device to make it easier to identify.'],
+    ['Modifica non salvata', 'Unsaved change'], ['Seleziona Icona Dispositivo', 'Select Device Icon'], ['Preset salvato', 'Preset saved'], ['Ordine preset salvato', 'Preset order saved'],
+    ['Elimina preset', 'Delete preset'], ['Elimina', 'Delete'], ['Nuovo Preset', 'New Preset'], ['Riordina', 'Reorder'], ['Fatto', 'Done'], ['Copia stato attuale della luce', 'Copy current light state'],
+    ['Aggiungi a Mio Preset', 'Add to My Presets'], ['Nessun preset personalizzato ancora.', 'No custom presets yet.'], ['Elimina tutti i preset', 'Delete all presets']
+  ];
+
+  function translateUi(language) {
+    state.language = language === 'en' ? 'en' : (language === 'xx' ? 'xx' : 'it');
+    if (typeof window.setLanguage === 'function') window.setLanguage(state.language);
+    if (el.settingValueLanguage) el.settingValueLanguage.textContent = state.language === 'en' ? t('device.english') : t('device.italian');
+    renderLanguageSelection(state.pendingLanguage || state.language);
+  }
+
+  function renderLocationSelection(location) {
+    document.querySelectorAll('.location-row').forEach(row => {
+      const selected = row.dataset.location === location;
+      row.classList.toggle('active', selected);
+      const icon = row.querySelector('.check-icon');
+      if (icon) icon.classList.toggle('hidden', !selected);
+    });
+  }
+
+  function renderLanguageSelection(language) {
+    el.languageRows.forEach(row => {
+      const selected = row.dataset.language === language;
+      row.classList.toggle('active', selected);
+      const icon = row.querySelector('.check-icon');
+      if (icon) icon.classList.toggle('hidden', !selected);
+    });
+  }
+
+  function discardPendingSettings() {
+    state.pendingLocation = state.deviceLocation;
+    state.pendingLanguage = state.language;
+    renderLocationSelection(state.deviceLocation);
+    renderLanguageSelection(state.language);
+    if (el.inputCustomLocation) el.inputCustomLocation.value = '';
+  }
+
   // Setup Event Listeners
   // ==========================================================================
   function setupListeners() {
@@ -1751,6 +1810,15 @@
     document.querySelectorAll('.btn-view-back').forEach(btn => {
       btn.addEventListener('click', () => {
         const target = btn.dataset.target;
+        const currentView = document.querySelector('.app-view.active')?.id;
+        if (currentView === 'view-location' || currentView === 'view-language') {
+          const hasUnsavedLocation = currentView === 'view-location' && (state.pendingLocation !== state.deviceLocation || Boolean(el.inputCustomLocation?.value.trim()));
+          const hasUnsavedLanguage = currentView === 'view-language' && state.pendingLanguage !== state.language;
+          if (hasUnsavedLocation || hasUnsavedLanguage) {
+            showToast(state.language === 'en' ? 'Unsaved change' : 'Modifica non salvata');
+          }
+          discardPendingSettings();
+        }
         if (target) {
           showView(target, false);
         } else {
@@ -1774,7 +1842,19 @@
       el.settingRowName.addEventListener('click', () => showView('view-device-name'));
     }
     if (el.settingRowLocation) {
-      el.settingRowLocation.addEventListener('click', () => showView('view-location'));
+      el.settingRowLocation.addEventListener('click', () => {
+        state.pendingLocation = state.deviceLocation;
+        if (el.inputCustomLocation) el.inputCustomLocation.value = '';
+        renderLocationSelection(state.pendingLocation);
+        showView('view-location');
+      });
+    }
+    if (el.settingRowLanguage) {
+      el.settingRowLanguage.addEventListener('click', () => {
+        state.pendingLanguage = state.language;
+        renderLanguageSelection(state.pendingLanguage);
+        showView('view-language');
+      });
     }
     if (el.settingRowDefaultState) {
       el.settingRowDefaultState.addEventListener('click', () => showView('view-default-state'));
@@ -1852,7 +1932,10 @@
     document.querySelectorAll('.location-row').forEach(row => {
       row.addEventListener('click', () => {
         const loc = row.dataset.location;
-        state.deviceLocation = loc;
+        state.pendingLocation = loc;
+        renderLocationSelection(loc);
+        return;
+        // The location is committed only by the Save button.
         applyDeviceCustomizations();
       });
     });
@@ -1866,15 +1949,39 @@
       });
     }
 
+    el.languageRows.forEach(row => {
+      row.addEventListener('click', () => {
+        state.pendingLanguage = row.dataset.language;
+        renderLanguageSelection(state.pendingLanguage);
+      });
+    });
+
     if (el.btnSaveLocation) {
       el.btnSaveLocation.addEventListener('click', () => {
         const custom = el.inputCustomLocation.value.trim();
         if (custom) {
-          state.deviceLocation = custom;
+          state.pendingLocation = custom;
         }
+        state.deviceLocation = state.pendingLocation || state.deviceLocation;
         localStorage.setItem('tapo_device_location', state.deviceLocation);
         applyDeviceCustomizations();
-        showToast('Posizione salvata');
+        translateUi(state.language);
+        showToast(state.language === 'en' ? 'Location saved' : 'Posizione salvata');
+        showView('view-settings', false);
+      });
+    }
+
+    if (el.btnSaveLanguage) {
+      el.btnSaveLanguage.addEventListener('click', () => {
+        state.language = state.pendingLanguage || state.language;
+        localStorage.setItem('tapo_language', state.language);
+        translateUi(state.language);
+        applyDeviceCustomizations();
+        renderMainPresets();
+        renderManagePresetsList();
+        renderCustomPresets();
+        translateUi(state.language);
+        showToast(state.language === 'en' ? 'Language saved' : 'Lingua salvata');
         showView('view-settings', false);
       });
     }
@@ -2101,14 +2208,14 @@
     if (el.btnPresetRiordina) {
       el.btnPresetRiordina.addEventListener('click', () => {
         state.isReordering = !state.isReordering;
-        el.btnPresetRiordina.textContent = state.isReordering ? 'Fatto' : 'Riordina';
+        el.btnPresetRiordina.textContent = state.isReordering ? t('presets.done') : t('presets.reorder');
         const card = el.presetManageListCard;
         if (card) card.classList.toggle('is-reordering', state.isReordering);
 
         if (!state.isReordering) {
           localStorage.setItem('tapo_presets', JSON.stringify(state.presets));
           renderMainPresets();
-          showToast('Ordine preset salvato');
+          showToast(t('presets.orderSaved'));
         }
       });
     }
@@ -2117,7 +2224,7 @@
       el.btnAddPreset.addEventListener('click', () => {
         const newIdx = state.presets.length;
         const newPreset = {
-          name: `Preset ${newIdx + 1}`,
+          name: t('presets.default', { index: newIdx + 1 }),
           type: 'color',
           hue: 200,
           saturation: 100,
@@ -2158,7 +2265,7 @@
         }
         renderManagePresetsList();
         renderMainPresets();
-        showToast('Preset salvato');
+        showToast(t('presets.saved'));
         showView('view-manage-presets');
       });
     }
@@ -2184,7 +2291,7 @@
     if (el.btnNewPreset) {
       el.btnNewPreset.addEventListener('click', () => {
         const isReordering = el.modalCustomPresetsList.classList.toggle('is-reordering');
-        el.btnNewPreset.textContent = isReordering ? 'Fatto' : 'Riordina';
+        el.btnNewPreset.textContent = isReordering ? t('presets.done') : t('presets.reorder');
       });
     }
     if (el.btnBackPresetList) el.btnBackPresetList.addEventListener('click', showPresetList);
@@ -2311,6 +2418,15 @@
   // App Bootstrapping
   // ==========================================================================
   function init() {
+    if (typeof window.onLanguageChange === 'function') window.onLanguageChange(() => {
+      renderMainPresets();
+      renderManagePresetsList();
+      renderCustomPresets();
+      applyDeviceCustomizations();
+      updateUI();
+      if (el.btnPresetRiordina) el.btnPresetRiordina.textContent = state.isReordering ? t('presets.done') : t('presets.reorder');
+      if (el.btnNewPreset && el.modalCustomPresetsList) el.btnNewPreset.textContent = el.modalCustomPresetsList.classList.contains('is-reordering') ? t('presets.done') : t('presets.reorder');
+    });
     setupListeners();
     applyDeviceCustomizations();
     renderMainPresets();
@@ -2318,6 +2434,12 @@
     renderCustomPresets();
     updateTabIndicator(el.tabBtnWhite);
     updateUI();
+
+    state.pendingLocation = state.deviceLocation;
+    state.pendingLanguage = state.language;
+    translateUi(state.language);
+    renderLocationSelection(state.deviceLocation);
+    renderLanguageSelection(state.language);
 
     // Initial State Fetch
     pollState();

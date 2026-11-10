@@ -77,7 +77,7 @@ async def kasa_exception_handler(
     request.app.state.bulb = None  # Reset per tentare la riconnessione alla prossima chiamata
     return JSONResponse(
         status_code=503,
-        content={"status": 503, "detail": "Lampadina non raggiungibile o errore di comunicazione."},
+        content={"status": 503, "code": "bulb_communication_error"},
     )
 
 
@@ -87,7 +87,7 @@ async def get_state(request: Request) -> dict:
     if bulb is None:
         return JSONResponse(
             status_code=503,
-            content={"status": 503, "detail": "Lampadina non configurata o non raggiungibile."},
+            content={"status": 503, "code": "bulb_unreachable"},
         )
     try:
         await bulb.update()
@@ -108,7 +108,7 @@ async def get_state(request: Request) -> dict:
         request.app.state.bulb = None
         return JSONResponse(
             status_code=503,
-            content={"status": 503, "detail": f"Errore lettura stato lampadina: {exc}"},
+            content={"status": 503, "code": "bulb_state_read_error"},
         )
 
 
@@ -160,7 +160,7 @@ async def set_power(on: bool, request: Request) -> dict:
     if bulb is None:
         return JSONResponse(
             status_code=503,
-            content={"status": 503, "detail": "Lampadina non raggiungibile."},
+            content={"status": 503, "code": "bulb_unreachable"},
         )
     if on:
         await bulb.turn_on()
@@ -177,7 +177,7 @@ async def set_brightness(
     if bulb is None:
         return JSONResponse(
             status_code=503,
-            content={"status": 503, "detail": "Lampadina non raggiungibile."},
+            content={"status": 503, "code": "bulb_unreachable"},
         )
     await bulb.modules["Light"].set_brightness(level)
     return {"status": 200, "brightness": level}
@@ -191,7 +191,7 @@ async def set_color_temperature(
     if bulb is None:
         return JSONResponse(
             status_code=503,
-            content={"status": 503, "detail": "Lampadina non raggiungibile."},
+            content={"status": 503, "code": "bulb_unreachable"},
         )
     await bulb.modules["Light"].set_color_temp(kelvin)
     return {"status": 200, "color_temp": kelvin}
@@ -203,7 +203,7 @@ async def set_color(color: ColorRequest, request: Request) -> dict:
     if bulb is None:
         return JSONResponse(
             status_code=503,
-            content={"status": 503, "detail": "Lampadina non raggiungibile."},
+            content={"status": 503, "code": "bulb_unreachable"},
         )
     await bulb.modules["Light"].set_hsv(
         color.hue, color.saturation, color.value

@@ -98,7 +98,7 @@
       <main class="main-content">
         <!-- Power Card -->
         <section class="card power-card">
-          <span class="power-title">Power</span>
+          <span class="power-title" data-i18n="app.power">Power</span>
           <button id="power-toggle-btn" class="power-circle-btn power-on" aria-label="Accendi o spegni la lampadina">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
               <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
@@ -113,7 +113,7 @@
           <!-- Mio Preset Card -->
           <section class="card presets-card">
             <div class="presets-header-row">
-              <h2 class="card-subtitle">Mio Preset</h2>
+              <h2 class="card-subtitle" data-i18n="presets.title">Mio Preset</h2>
             </div>
             <div class="preset-scroll-row" id="preset-list">
               <!-- Preset Swatches rendered dynamically here -->
@@ -133,7 +133,7 @@
           <section class="card controls-card">
             <!-- Brightness Row -->
             <div class="control-header-row">
-              <span class="control-label">Luminosità</span>
+              <span class="control-label" data-i18n="app.brightness">Luminosità</span>
               <span class="control-value" id="brightness-label">100%</span>
             </div>
 
@@ -148,8 +148,8 @@
             <!-- Tab Bar: Bianco vs Colore -->
             <div class="tab-header-row">
               <div class="tab-buttons">
-                <button class="tab-btn active" id="tab-btn-white" data-tab="white">Bianco</button>
-                <button class="tab-btn" id="tab-btn-color" data-tab="color">Colore</button>
+                <button class="tab-btn active" id="tab-btn-white" data-tab="white" data-i18n="app.white">Bianco</button>
+                <button class="tab-btn" id="tab-btn-color" data-tab="color" data-i18n="app.color">Colore</button>
                 <div class="tab-indicator" id="tab-indicator"></div>
               </div>
               <div class="tab-right-info" id="white-temp-indicator">3000K</div>
@@ -206,7 +206,7 @@
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <h2 class="sub-nav-title">Impostazioni Dispositivo</h2>
+        <h2 class="sub-nav-title" data-i18n="device.settings">Impostazioni Dispositivo</h2>
         <div class="nav-btn-placeholder"></div>
       </header>
 
@@ -240,9 +240,22 @@
 
         <!-- Group 2: Advanced -->
         <section class="card settings-group">
+          <!-- Lingua -->
+          <div class="menu-list-row clickable-row" id="setting-row-language">
+            <span class="menu-label" data-i18n="device.language">Lingua</span>
+            <div class="menu-right-meta">
+              <span class="setting-value-text" id="setting-value-language">Italiano</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </div>
+
+          <div class="menu-divider"></div>
+
           <!-- Informazioni Dispositivo -->
           <div class="menu-list-row clickable-row" id="setting-row-info">
-            <span class="menu-label">Informazioni Dispositivo</span>
+            <span class="menu-label" data-i18n="device.info">Informazioni Dispositivo</span>
             <div class="menu-right-meta">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -253,6 +266,33 @@
 
       </div>
     </div><!-- End #view-settings -->
+
+
+    <!-- ====================================================================
+         VIEW: LINGUA
+         ==================================================================== -->
+    <div id="view-language" class="app-view">
+      <header class="sub-nav">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <h2 class="sub-nav-title">Lingua</h2>
+        <button class="nav-text-btn" id="btn-save-language">Salva</button>
+      </header>
+      <div class="sub-view-content">
+        <section class="card settings-group" id="language-options-group">
+          <div class="menu-list-row language-row" data-language="it">
+            <span class="menu-label">Italiano</span>
+            <svg class="check-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
+          <div class="menu-divider"></div>
+          <div class="menu-list-row language-row" data-language="en">
+            <span class="menu-label">English</span>
+            <svg class="check-icon hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
+        </section>
+      </div>
+    </div><!-- End #view-language -->
 
 
     <!-- ====================================================================
@@ -1049,6 +1089,7 @@
 
   </div><!-- End .app-wrapper -->
 
+  <script src="/i18n.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>
