@@ -1,10 +1,11 @@
 // Service Worker for Tapo Smart Bulb PWA
-const CACHE_NAME = 'tapo-bulb-v3';
+const CACHE_NAME = 'tapo-bulb-v4';
 const ASSETS = [
   '/',
   '/index.html',
   '/style.css',
   '/app.js',
+  '/i18n.js',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
@@ -32,8 +33,8 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // Always bypass cache for API calls
-  if (e.request.url.includes('/api/')) {
+  // Only cache GET requests; always bypass cache for API calls
+  if (e.request.method !== 'GET' || e.request.url.includes('/api/')) {
     return;
   }
 

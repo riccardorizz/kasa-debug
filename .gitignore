@@ -14,3 +14,9 @@ investigation.cany/
 feed.json
 usage.json
 craft.json
+
+# runtime data and local config
+data/
+presets.json
+local-config.json
+.DS_Store

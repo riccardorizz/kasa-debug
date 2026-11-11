@@ -15,7 +15,8 @@ from pydantic import BaseModel, Field
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-HOST = os.getenv("BULB_IP", "192.168.0.5")
+HOST = os.getenv("BULB_IP", "")
+MATTER_CODE = os.getenv("MATTER_CODE", "")  # optional, never commit it
 TAPO_USER = os.getenv("TAPO_USER", "")
 TAPO_PASS = os.getenv("TAPO_PASS", "")
 CREDS = Credentials(TAPO_USER, TAPO_PASS) if TAPO_USER and TAPO_PASS else None
@@ -25,6 +26,9 @@ async def get_or_connect_bulb(app: FastAPI):
     bulb = getattr(app.state, "bulb", None)
     if bulb is not None:
         return bulb
+    if not HOST:
+        logger.warning("BULB_IP non configurato nel file .env.")
+        return None
     if not TAPO_USER or not TAPO_PASS:
         logger.warning("TAPO_USER o TAPO_PASS non configurati nel file .env.")
         return None
@@ -54,11 +58,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(lifespan=lifespan)
 
 # Abilita CORS per consentire l'accesso da qualsiasi client (LAN, PWA, localhost, ecc.)
+CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=CORS_ORIGINS,
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -105,6 +109,7 @@ async def get_state(request: Request) -> dict:
             },
         }
     except Exception as exc:
+        logger.warning("Errore lettura stato: %s", exc)
         request.app.state.bulb = None
         return JSONResponse(
             status_code=503,
@@ -112,46 +117,34 @@ async def get_state(request: Request) -> dict:
         )
 
 
+def _info_payload(bulb, connected: bool) -> dict:
+    """Device info. Unknown values are None: never invent data."""
+    hw = getattr(bulb, "hw_info", None) or {}
+    return {
+        "status": 200,
+        "connected": connected,
+        "model": getattr(bulb, "model", None),
+        "alias": getattr(bulb, "alias", None),
+        "host": getattr(bulb, "host", None) or HOST or None,
+        "mac": getattr(bulb, "mac", None),
+        "hw_version": hw.get("hw_ver") if isinstance(hw, dict) else None,
+        "rssi": getattr(bulb, "rssi", None),
+        "matter_code": MATTER_CODE or None,
+    }
+
+
 @app.get("/api/info")
 async def get_info(request: Request) -> dict:
     bulb = await get_or_connect_bulb(request.app)
     if bulb is None:
-        return {
-            "status": 200,
-            "connected": False,
-            "model": "Tapo L535",
-            "alias": "Lampadina Smart",
-            "host": HOST,
-            "mac": "B0-19-21-8A-6B-D0",
-            "hw_version": "1.0",
-            "sw_version": "1.1.5 Build 240328 Rel.194528",
-            "rssi": -52
-        }
+        return _info_payload(None, False)
     try:
         await bulb.update()
-        return {
-            "status": 200,
-            "connected": True,
-            "model": getattr(bulb, "model", "Tapo L535"),
-            "alias": getattr(bulb, "alias", "Lampadina Smart"),
-            "host": getattr(bulb, "host", HOST),
-            "mac": getattr(bulb, "mac", "B0-19-21-8A-6B-D0"),
-            "hw_version": getattr(bulb, "hw_version", "1.0"),
-            "sw_version": getattr(bulb, "sw_version", "1.1.5 Build 240328 Rel.194528"),
-            "rssi": getattr(bulb, "rssi", -52)
-        }
-    except Exception:
-        return {
-            "status": 200,
-            "connected": False,
-            "model": "Tapo L535",
-            "alias": "Lampadina Smart",
-            "host": HOST,
-            "mac": "B0-19-21-8A-6B-D0",
-            "hw_version": "1.0",
-            "sw_version": "1.1.5 Build 240328 Rel.194528",
-            "rssi": -52
-        }
+        return _info_payload(bulb, True)
+    except Exception as exc:
+        logger.warning("Errore lettura info: %s", exc)
+        request.app.state.bulb = None
+        return _info_payload(None, False)
 
 
 @app.post("/api/power/{on}")
@@ -216,7 +209,9 @@ async def set_color(color: ColorRequest, request: Request) -> dict:
     }
 
 
-PRESETS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "presets.json")
+PRESETS_FILE = os.getenv("PRESETS_FILE") or os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "presets.json"
+)
 
 DEFAULT_PRESETS = [
     {"name": "Preset 1", "type": "white", "temp": 2700, "brightness": 100},
@@ -243,6 +238,7 @@ def load_presets_from_file() -> list[dict]:
 
 def save_presets_to_file(presets: list[dict]) -> None:
     try:
+        os.makedirs(os.path.dirname(PRESETS_FILE), exist_ok=True)
         tmp_file = PRESETS_FILE + ".tmp"
         with open(tmp_file, "w", encoding="utf-8") as f:
             json.dump(presets, f, indent=2, ensure_ascii=False)
@@ -252,7 +248,7 @@ def save_presets_to_file(presets: list[dict]) -> None:
 
 
 class PresetsPayload(BaseModel):
-    presets: list[dict]
+    presets: list[dict] = Field(max_length=50)
 
 
 @app.get("/api/presets")

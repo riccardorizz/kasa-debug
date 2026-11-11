@@ -1,12 +1,18 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir fastapi "uvicorn[standard]" python-kasa
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY main.py ./main.py
 COPY static ./static
 
-EXPOSE 8080
+# presets are stored in a mounted volume so they survive rebuilds
+RUN useradd --create-home appuser && mkdir /data && chown appuser /data
+USER appuser
+ENV PRESETS_FILE=/data/presets.json
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+EXPOSE 8000
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

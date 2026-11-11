@@ -15,7 +15,7 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
   
-  <title>Lampadina Smart</title>
+  <title data-i18n="device.smartBulb">Lampadina Smart</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -33,7 +33,7 @@
         <div class="nav-btn-placeholder" aria-hidden="true"></div>
 
         <div class="top-nav-actions">
-          <button class="nav-btn settings-btn" id="btn-settings" aria-label="Impostazioni">
+          <button class="nav-btn settings-btn" id="btn-settings" aria-label="Impostazioni" data-i18n-aria="common.settings">
             <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="12 2.5 20.2 7.2 20.2 16.8 12 21.5 3.8 16.8 3.8 7.2"></polygon>
               <circle cx="12" cy="12" r="3.2"></circle>
@@ -46,7 +46,7 @@
       <section class="hero-section">
         <div class="hero-bulb-container" id="hero-bulb-container">
           <!-- Dynamically renders active icon SVG -->
-          <svg id="hero-bulb-svg" class="hero-bulb-svg" viewBox="0 0 160 210" aria-label="Lampadina">
+          <svg id="hero-bulb-svg" class="hero-bulb-svg" viewBox="0 0 160 210" aria-label="Lampadina" data-i18n-aria="aria.bulb">
             <defs>
               <radialGradient id="bulb-glass-gradient" cx="45%" cy="35%" r="65%">
                 <stop offset="0%" stop-color="var(--bulb-inner-light, #fed776)"/>
@@ -89,7 +89,7 @@
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
             </svg>
-            <span id="hero-device-location">Camera da letto</span>
+            <span id="hero-device-location" data-i18n="device.bedroom">Camera da letto</span>
           </div>
         </div>
       </section>
@@ -99,7 +99,7 @@
         <!-- Power Card -->
         <section class="card power-card">
           <span class="power-title" data-i18n="app.power">Power</span>
-          <button id="power-toggle-btn" class="power-circle-btn power-on" aria-label="Accendi o spegni la lampadina">
+          <button id="power-toggle-btn" class="power-circle-btn power-on" aria-label="Accendi o spegni la lampadina" data-i18n-aria="aria.power">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
               <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
               <line x1="12" y1="2" x2="12" y2="12"></line>
@@ -120,7 +120,7 @@
               <div id="preset-swatches-container" class="preset-swatches-container"></div>
 
               <!-- Manage Presets Button (opens 1.jpeg) -->
-              <button class="preset-item preset-add-btn" id="btn-manage-presets" title="Gestisci preset" aria-label="Gestisci preset">
+              <button class="preset-item preset-add-btn" id="btn-manage-presets" title="Gestisci preset" aria-label="Gestisci preset" data-i18n-aria="presets.manage" data-i18n-title="presets.manage">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -142,7 +142,7 @@
               <div class="slider-track brightness-track" id="brightness-track">
                 <div class="slider-fill brightness-fill" id="brightness-fill" style="width: 100%;"></div>
               </div>
-              <input type="range" id="brightness-input" min="0" max="100" value="100" class="accessible-range" aria-label="Regola luminosità">
+              <input type="range" id="brightness-input" min="0" max="100" value="100" class="accessible-range" aria-label="Regola luminosità" data-i18n-aria="aria.brightness">
             </div>
 
             <!-- Tab Bar: Bianco vs Colore -->
@@ -168,7 +168,7 @@
                     <!-- Temperature Thumb -->
                     <div class="slider-thumb temp-thumb" id="temp-thumb" style="left: 12.5%;"></div>
                   </div>
-                  <input type="range" id="temp-input" min="2500" max="6500" value="3000" class="accessible-range" aria-label="Regola temperatura colore">
+                  <input type="range" id="temp-input" min="2500" max="6500" value="3000" class="accessible-range" aria-label="Regola temperatura colore" data-i18n-aria="aria.temperature">
                 </div>
               </div>
 
@@ -179,7 +179,7 @@
                     <!-- Color Thumb -->
                     <div class="slider-thumb color-thumb" id="color-thumb" style="left: 50%;"></div>
                   </div>
-                  <input type="range" id="color-input" min="0" max="360" value="180" class="accessible-range" aria-label="Regola tonalità colore">
+                  <input type="range" id="color-input" min="0" max="360" value="180" class="accessible-range" aria-label="Regola tonalità colore" data-i18n-aria="aria.hue">
                 </div>
               </div>
             </div>
@@ -190,7 +190,7 @@
         </div><!-- End controllable area -->
 
         <!-- Subtle connection status indicator toast -->
-        <div id="connection-toast" class="connection-toast hidden">Connessione persa</div>
+        <div id="connection-toast" class="connection-toast hidden" data-i18n="errors.connectionLost">Connessione persa</div>
 
       </main>
     </div><!-- End #view-main -->
@@ -201,7 +201,7 @@
          ==================================================================== -->
     <div id="view-settings" class="app-view">
       <header class="sub-nav">
-        <button class="nav-btn btn-view-back" data-target="view-main" aria-label="Indietro">
+        <button class="nav-btn btn-view-back" data-target="view-main" aria-label="Indietro" data-i18n-aria="device.back">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
@@ -215,9 +215,9 @@
         <section class="card settings-group">
           <!-- Nome Dispositivo -->
           <div class="menu-list-row clickable-row" id="setting-row-name">
-            <span class="menu-label">Nome Dispositivo</span>
+            <span class="menu-label" data-i18n="device.name">Nome Dispositivo</span>
             <div class="menu-right-meta">
-              <span class="setting-value-text" id="setting-value-name">Lampadina Smart</span>
+              <span class="setting-value-text" id="setting-value-name" data-i18n="device.smartBulb">Lampadina Smart</span>
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
               </svg>
@@ -228,9 +228,9 @@
 
           <!-- Posizione -->
           <div class="menu-list-row clickable-row" id="setting-row-location">
-            <span class="menu-label">Posizione</span>
+            <span class="menu-label" data-i18n="device.location">Posizione</span>
             <div class="menu-right-meta">
-              <span class="setting-value-text" id="setting-value-location">Camera da letto</span>
+              <span class="setting-value-text" id="setting-value-location" data-i18n="device.bedroom">Camera da letto</span>
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
               </svg>
@@ -244,7 +244,7 @@
           <div class="menu-list-row clickable-row" id="setting-row-language">
             <span class="menu-label" data-i18n="device.language">Lingua</span>
             <div class="menu-right-meta">
-              <span class="setting-value-text" id="setting-value-language">Italiano</span>
+              <span class="setting-value-text" id="setting-value-language" data-i18n="device.italian">Italiano</span>
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
               </svg>
@@ -273,21 +273,21 @@
          ==================================================================== -->
     <div id="view-language" class="app-view">
       <header class="sub-nav">
-        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro" data-i18n-aria="device.back">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
         </button>
-        <h2 class="sub-nav-title">Lingua</h2>
-        <button class="nav-text-btn" id="btn-save-language">Salva</button>
+        <h2 class="sub-nav-title" data-i18n="device.language">Lingua</h2>
+        <button class="nav-text-btn" id="btn-save-language" data-i18n="device.save">Salva</button>
       </header>
       <div class="sub-view-content">
         <section class="card settings-group" id="language-options-group">
           <div class="menu-list-row language-row" data-language="it">
-            <span class="menu-label">Italiano</span>
+            <span class="menu-label" data-i18n="device.italian">Italiano</span>
             <svg class="check-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           </div>
           <div class="menu-divider"></div>
           <div class="menu-list-row language-row" data-language="en">
-            <span class="menu-label">English</span>
+            <span class="menu-label" data-i18n="device.english">English</span>
             <svg class="check-icon hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           </div>
         </section>
@@ -300,20 +300,20 @@
          ==================================================================== -->
     <div id="view-select-icon" class="app-view">
       <header class="sub-nav">
-        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro" data-i18n-aria="device.back">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <h2 class="sub-nav-title">Seleziona Icona Dispositivo</h2>
-        <button class="nav-text-btn" id="btn-save-icon">Salva</button>
+        <h2 class="sub-nav-title" data-i18n="device.icon">Seleziona Icona Dispositivo</h2>
+        <button class="nav-text-btn" id="btn-save-icon" data-i18n="device.save">Salva</button>
       </header>
 
       <div class="sub-view-content">
         <div class="card icon-picker-card">
           <div class="icon-grid-3x4" id="icon-picker-grid">
             <!-- 1. Lampadina Standard -->
-            <button class="icon-option active" data-icon-id="bulb" aria-label="Lampadina classica">
+            <button class="icon-option active" data-icon-id="bulb" aria-label="Lampadina classica" data-i18n-aria="icons.classicBulb">
               <svg viewBox="0 0 48 48" class="picker-svg">
                 <circle cx="24" cy="20" r="14" fill="#f6b23a"/>
                 <path d="M19 32h10v4H19z" fill="#4a5568"/>
@@ -323,7 +323,7 @@
             </button>
 
             <!-- 2. Lampada da tavolo con paralume conico -->
-            <button class="icon-option" data-icon-id="table-lamp-cone" aria-label="Lampada da tavolo conica">
+            <button class="icon-option" data-icon-id="table-lamp-cone" aria-label="Lampada da tavolo conica" data-i18n-aria="icons.conicalTable">
               <svg viewBox="0 0 48 48" class="picker-svg">
                 <polygon points="17 24 31 24 28 14 20 14" fill="#fed776"/>
                 <ellipse cx="24" cy="30" rx="4.5" ry="5.5" fill="#90a4ae"/>
@@ -333,7 +333,7 @@
             </button>
 
             <!-- 3. Lampada con paralume squadrato -->
-            <button class="icon-option" data-icon-id="table-lamp-square" aria-label="Lampada squadrata">
+            <button class="icon-option" data-icon-id="table-lamp-square" aria-label="Lampada squadrata" data-i18n-aria="icons.square">
               <svg viewBox="0 0 48 48" class="picker-svg">
                 <rect x="18" y="14" width="12" height="12" rx="1.5" fill="#fed776"/>
                 <rect x="23" y="26" width="2" height="10" fill="#374151"/>
@@ -343,7 +343,7 @@
             </button>
 
             <!-- 4. Lampada vintage con frange -->
-            <button class="icon-option" data-icon-id="vintage-lamp" aria-label="Lampada vintage">
+            <button class="icon-option" data-icon-id="vintage-lamp" aria-label="Lampada vintage" data-i18n-aria="icons.vintage">
               <svg viewBox="0 0 48 48" class="picker-svg">
                 <polygon points="16 25 32 25 29 14 19 14" fill="#fde68a"/>
                 <path d="M16 25 Q 18 28, 20 25 Q 22 28, 24 25 Q 26 28, 28 25 Q 30 28, 32 25" stroke="#ef4444" stroke-width="1.8" fill="none"/>
@@ -353,7 +353,7 @@
             </button>
 
             <!-- 5. Lampada da scrivania a pantografo -->
-            <button class="icon-option" data-icon-id="desk-lamp" aria-label="Lampada pantografo">
+            <button class="icon-option" data-icon-id="desk-lamp" aria-label="Lampada pantografo" data-i18n-aria="icons.pantograph">
               <svg viewBox="0 0 48 48" class="picker-svg">
                 <path d="M22 17l6 6" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
                 <path d="M28 23l-7 13" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
@@ -364,7 +364,7 @@
             </button>
 
             <!-- 6. Lampada con fascio di luce -->
-            <button class="icon-option" data-icon-id="desk-lamp-lit" aria-label="Lampada con luce">
+            <button class="icon-option" data-icon-id="desk-lamp-lit" aria-label="Lampada con luce" data-i18n-aria="icons.withLight">
               <svg viewBox="0 0 48 48" class="picker-svg">
                 <polygon points="15 36 26 18 33 18 22 36" fill="rgba(253, 224, 71, 0.35)"/>
                 <path d="M26 17l9 3-4 16" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" fill="none"/>
@@ -374,7 +374,7 @@
             </button>
 
             <!-- 7. Piantana classica diritta -->
-            <button class="icon-option" data-icon-id="floor-lamp" aria-label="Piantana classica">
+            <button class="icon-option" data-icon-id="floor-lamp" aria-label="Piantana classica" data-i18n-aria="icons.classicFloor">
               <svg viewBox="0 0 48 48" class="picker-svg">
                 <polygon points="18 22 30 22 28 15 20 15" fill="#fde68a"/>
                 <line x1="24" y1="22" x2="24" y2="38" stroke="#64748b" stroke-width="2.2" stroke-linecap="round"/>
@@ -384,7 +384,7 @@
             </button>
 
             <!-- 8. Piantana con faretto da lettura -->
-            <button class="icon-option" data-icon-id="floor-reading-lamp" aria-label="Piantana con luce lettura">
+            <button class="icon-option" data-icon-id="floor-reading-lamp" aria-label="Piantana con luce lettura" data-i18n-aria="icons.readingFloor">
               <svg viewBox="0 0 48 48" class="picker-svg">
                 <path d="M19 16 Q 24 20, 29 16" stroke="#fde68a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
                 <line x1="24" y1="18" x2="24" y2="38" stroke="#64748b" stroke-width="2.2"/>
@@ -395,7 +395,7 @@
             </button>
 
             <!-- 9. Piantana moderna squadrata -->
-            <button class="icon-option" data-icon-id="floor-square-lamp" aria-label="Piantana squadrata">
+            <button class="icon-option" data-icon-id="floor-square-lamp" aria-label="Piantana squadrata" data-i18n-aria="icons.squareFloor">
               <svg viewBox="0 0 48 48" class="picker-svg">
                 <rect x="20" y="14" width="8" height="9" rx="1" fill="#fde68a"/>
                 <line x1="24" y1="23" x2="24" y2="38" stroke="#64748b" stroke-width="2" stroke-dasharray="2,2"/>
@@ -404,7 +404,7 @@
             </button>
 
             <!-- 10. Lampadario a sospensione a campana -->
-            <button class="icon-option" data-icon-id="pendant-dome" aria-label="Lampadario a campana">
+            <button class="icon-option" data-icon-id="pendant-dome" aria-label="Lampadario a campana" data-i18n-aria="icons.bell">
               <svg viewBox="0 0 48 48" class="picker-svg">
                 <line x1="24" y1="12" x2="24" y2="24" stroke="#475569" stroke-width="2"/>
                 <path d="M16 30 C 16 24, 32 24, 32 30 Z" fill="#90caf9"/>
@@ -414,7 +414,7 @@
             </button>
 
             <!-- 11. Barra a 3 faretti da soffitto -->
-            <button class="icon-option" data-icon-id="track-spots" aria-label="Barra 3 faretti">
+            <button class="icon-option" data-icon-id="track-spots" aria-label="Barra 3 faretti" data-i18n-aria="icons.spots">
               <svg viewBox="0 0 48 48" class="picker-svg">
                 <rect x="12" y="24" width="24" height="2" fill="#475569"/>
                 <line x1="16" y1="20" x2="16" y2="24" stroke="#475569" stroke-width="1.8"/>
@@ -430,7 +430,7 @@
             </button>
 
             <!-- 12. Lampadario a 3 lampade a sospensione -->
-            <button class="icon-option" data-icon-id="triple-pendant" aria-label="Lampadario triplo">
+            <button class="icon-option" data-icon-id="triple-pendant" aria-label="Lampadario triplo" data-i18n-aria="icons.tripleChandelier">
               <svg viewBox="0 0 48 48" class="picker-svg">
                 <rect x="14" y="23" width="20" height="2" fill="#475569"/>
                 <line x1="17" y1="25" x2="17" y2="30" stroke="#475569" stroke-width="1.5"/>
@@ -452,21 +452,21 @@
          ==================================================================== -->
     <div id="view-device-name" class="app-view">
       <header class="sub-nav">
-        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro" data-i18n-aria="device.back">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <h2 class="sub-nav-title">Nome del vostro dispositivo</h2>
-        <button class="nav-text-btn" id="btn-save-name">Salva</button>
+        <h2 class="sub-nav-title" data-i18n="device.nameTitle">Nome del vostro dispositivo</h2>
+        <button class="nav-text-btn" id="btn-save-name" data-i18n="device.save">Salva</button>
       </header>
 
       <div class="sub-view-content">
-        <p class="view-intro-hint">Dai un nome al tuo dispositivo per facilitarne l'identificazione.</p>
+        <p class="view-intro-hint" data-i18n="device.nameHint">Dai un nome al tuo dispositivo per facilitarne l'identificazione.</p>
         <div class="card text-input-card">
           <div class="input-clear-wrapper">
-            <input type="text" id="input-device-name" class="native-text-input" value="Lampadina Smart" maxlength="32" placeholder="Nome dispositivo">
-            <button class="input-clear-btn" id="btn-clear-name" aria-label="Cancella testo">
+            <input type="text" id="input-device-name" class="native-text-input" value="Lampadina Smart" maxlength="32" placeholder="Nome dispositivo" data-i18n-placeholder="device.namePlaceholder">
+            <button class="input-clear-btn" id="btn-clear-name" aria-label="Cancella testo" data-i18n-aria="common.clearText">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
                 <circle cx="12" cy="12" r="9" fill="#3f3f46"></circle>
                 <line x1="9" y1="9" x2="15" y2="15" stroke="#ffffff"></line>
@@ -484,19 +484,19 @@
          ==================================================================== -->
     <div id="view-location" class="app-view">
       <header class="sub-nav">
-        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro" data-i18n-aria="device.back">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <h2 class="sub-nav-title">Posizione</h2>
-        <button class="nav-text-btn" id="btn-save-location">Salva</button>
+        <h2 class="sub-nav-title" data-i18n="device.location">Posizione</h2>
+        <button class="nav-text-btn" id="btn-save-location" data-i18n="device.save">Salva</button>
       </header>
 
       <div class="sub-view-content">
         <section class="card settings-group" id="location-options-group">
           <div class="menu-list-row location-row active" data-location="Camera da letto">
-            <span class="menu-label">Camera da letto</span>
+            <span class="menu-label" data-i18n="device.bedroom">Camera da letto</span>
             <svg class="check-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
@@ -505,7 +505,7 @@
           <div class="menu-divider"></div>
 
           <div class="menu-list-row location-row" data-location="Soggiorno">
-            <span class="menu-label">Soggiorno</span>
+            <span class="menu-label" data-i18n="device.livingRoom">Soggiorno</span>
             <svg class="check-icon hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
@@ -514,7 +514,7 @@
           <div class="menu-divider"></div>
 
           <div class="menu-list-row location-row" data-location="Cucina">
-            <span class="menu-label">Cucina</span>
+            <span class="menu-label" data-i18n="device.kitchen">Cucina</span>
             <svg class="check-icon hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
@@ -523,7 +523,7 @@
           <div class="menu-divider"></div>
 
           <div class="menu-list-row location-row" data-location="Studio">
-            <span class="menu-label">Studio</span>
+            <span class="menu-label" data-i18n="device.studio">Studio</span>
             <svg class="check-icon hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
@@ -532,7 +532,7 @@
 
         <section class="card settings-group">
           <div class="menu-list-row clickable-row" id="row-custom-location">
-            <span class="menu-label">Personalizza</span>
+            <span class="menu-label" data-i18n="device.custom">Personalizza</span>
             <div class="menu-right-meta">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -541,7 +541,7 @@
           </div>
           <!-- Expandable custom location input -->
           <div class="custom-location-box hidden" id="custom-location-box">
-            <input type="text" id="input-custom-location" class="native-text-input" placeholder="Inserisci stanza..." maxlength="25">
+            <input type="text" id="input-custom-location" class="native-text-input" placeholder="Inserisci stanza..." maxlength="25" data-i18n-placeholder="device.roomPlaceholder">
           </div>
         </section>
       </div>
@@ -553,20 +553,20 @@
          ==================================================================== -->
     <div id="view-default-state" class="app-view">
       <header class="sub-nav">
-        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro" data-i18n-aria="device.back">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <h2 class="sub-nav-title">Stato Default</h2>
+        <h2 class="sub-nav-title" data-i18n="states.default">Stato Default</h2>
         <div class="nav-btn-placeholder"></div>
       </header>
 
       <div class="sub-view-content">
-        <p class="section-group-label">Quando si accende dall'app o dall'alimentazione, il dispositivo Tapo andrà su:</p>
+        <p class="section-group-label" data-i18n="states.defaultHint">Quando si accende dall'app o dall'alimentazione, il dispositivo Tapo andrà su:</p>
         <section class="card settings-group">
           <div class="menu-list-row selectable-option active" data-group="on-state" data-val="last-on">
-            <span class="menu-label">Ultimo stato &quot;On&quot;</span>
+            <span class="menu-label" data-i18n="device.lastOn">Ultimo stato &quot;On&quot;</span>
             <svg class="check-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
@@ -575,17 +575,17 @@
           <div class="menu-divider"></div>
 
           <div class="menu-list-row selectable-option" data-group="on-state" data-val="custom">
-            <span class="menu-label">Illuminazione Personalizzata</span>
+            <span class="menu-label" data-i18n="states.customLighting">Illuminazione Personalizzata</span>
             <svg class="check-icon hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </div>
         </section>
 
-        <p class="section-group-label">Quando l'alimentazione si interrompe ma ritorna, vuoi che il dispositivo Tapo:</p>
+        <p class="section-group-label" data-i18n="states.recoveryHint">Quando l'alimentazione si interrompe ma ritorna, vuoi che il dispositivo Tapo:</p>
         <section class="card settings-group">
           <div class="menu-list-row selectable-option active" data-group="recovery-state" data-val="turn-on">
-            <span class="menu-label">Accendi</span>
+            <span class="menu-label" data-i18n="states.on">Accendi</span>
             <svg class="check-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
@@ -594,7 +594,7 @@
           <div class="menu-divider"></div>
 
           <div class="menu-list-row selectable-option" data-group="recovery-state" data-val="toggle-last">
-            <span class="menu-label">Attiva/Disattiva (se il suo stato precedente era attivo e viceversa.)</span>
+            <span class="menu-label" data-i18n="states.toggle">Attiva/Disattiva (se il suo stato precedente era attivo e viceversa.)</span>
             <svg class="check-icon hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
@@ -607,7 +607,7 @@
             <line x1="12" y1="16" x2="12" y2="12"></line>
             <line x1="12" y1="8" x2="12.01" y2="8"></line>
           </svg>
-          <span>La configurazione a livello di firmware hardware non-volatile può essere sincronizzata in via definitiva con l'app ufficiale Tapo.</span>
+          <span data-i18n="states.firmwareNote">La configurazione a livello di firmware hardware non-volatile può essere sincronizzata in via definitiva con l'app ufficiale Tapo.</span>
         </div>
       </div>
     </div><!-- End #view-default-state -->
@@ -618,22 +618,22 @@
          ==================================================================== -->
     <div id="view-fade" class="app-view">
       <header class="sub-nav">
-        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro" data-i18n-aria="device.back">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <h2 class="sub-nav-title">Accensione/spegnimento graduale dell...</h2>
+        <h2 class="sub-nav-title" data-i18n="states.fadeTitle">Accensione/spegnimento graduale dell...</h2>
         <div class="nav-btn-placeholder"></div>
       </header>
 
       <div class="sub-view-content">
-        <p class="view-intro-hint">Accendere e spegnere lentamente la luce per ridurre l'affaticamento degli occhi.</p>
+        <p class="view-intro-hint" data-i18n="states.fadeHint">Accendere e spegnere lentamente la luce per ridurre l'affaticamento degli occhi.</p>
 
         <section class="card settings-group">
           <!-- Switch 1: Accesa gradualmente -->
           <div class="menu-list-row">
-            <span class="menu-label">Luce accesa gradualmente</span>
+            <span class="menu-label" data-i18n="states.fadeOn">Luce accesa gradualmente</span>
             <label class="ios-switch">
               <input type="checkbox" id="toggle-fade-on">
               <span class="ios-slider"></span>
@@ -644,7 +644,7 @@
 
           <!-- Switch 2: Spenta gradualmente -->
           <div class="menu-list-row">
-            <span class="menu-label">Luce spenta gradualmente</span>
+            <span class="menu-label" data-i18n="states.fadeOff">Luce spenta gradualmente</span>
             <label class="ios-switch">
               <input type="checkbox" id="toggle-fade-off">
               <span class="ios-slider"></span>
@@ -661,13 +661,13 @@
          ==================================================================== -->
     <div id="view-smart-actions-sub" class="app-view">
       <header class="sub-nav">
-        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro" data-i18n-aria="device.back">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <h2 class="sub-nav-title">Azioni Smart</h2>
-        <button class="nav-btn" id="btn-add-smart-action" aria-label="Aggiungi">
+        <h2 class="sub-nav-title" data-i18n="actions.title">Azioni Smart</h2>
+        <button class="nav-btn" id="btn-add-smart-action" aria-label="Aggiungi" data-i18n-aria="common.add">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
             <circle cx="12" cy="12" r="9"></circle>
             <line x1="12" y1="8" x2="12" y2="16"></line>
@@ -679,11 +679,11 @@
       <div class="sub-view-content">
         <!-- Sub-tabs: Consigliato vs Coinvolto -->
         <div class="smart-actions-tabs">
-          <button class="smart-tab-btn" id="tab-smart-rec">Consigliato</button>
-          <button class="smart-tab-btn active" id="tab-smart-active">Coinvolto</button>
+          <button class="smart-tab-btn" id="tab-smart-rec" data-i18n="actions.recommended">Consigliato</button>
+          <button class="smart-tab-btn active" id="tab-smart-active" data-i18n="actions.involved">Coinvolto</button>
         </div>
 
-        <h3 class="section-mini-header">Scorciatoie</h3>
+        <h3 class="section-mini-header" data-i18n="actions.shortcuts">Scorciatoie</h3>
 
         <!-- Lampadina Shortcut Card -->
         <div class="smart-shortcut-card">
@@ -692,8 +692,8 @@
               <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
             </svg>
           </div>
-          <span class="shortcut-title">Lampadina</span>
-          <button class="shortcut-menu-btn" id="btn-shortcut-menu" aria-label="Opzioni">
+          <span class="shortcut-title" data-i18n="aria.bulb">Lampadina</span>
+          <button class="shortcut-menu-btn" id="btn-shortcut-menu" aria-label="Opzioni" data-i18n-aria="common.options">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
               <circle cx="6" cy="12" r="2"></circle>
               <circle cx="12" cy="12" r="2"></circle>
@@ -708,7 +708,7 @@
             <line x1="12" y1="16" x2="12" y2="12"></line>
             <line x1="12" y1="8" x2="12.01" y2="8"></line>
           </svg>
-          <span>Le routine complesse e le automazioni con sensori Tapo sono configurabili e gestite dall'app ufficiale Tapo.</span>
+          <span data-i18n="actions.routinesNote">Le routine complesse e le automazioni con sensori Tapo sono configurabili e gestite dall'app ufficiale Tapo.</span>
         </div>
       </div>
     </div><!-- End #view-smart-actions-sub -->
@@ -719,38 +719,38 @@
          ==================================================================== -->
     <div id="view-device-info" class="app-view">
       <header class="sub-nav">
-        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro" data-i18n-aria="device.back">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <h2 class="sub-nav-title">Informazioni Dispositivo</h2>
+        <h2 class="sub-nav-title" data-i18n="device.info">Informazioni Dispositivo</h2>
         <div class="nav-btn-placeholder"></div>
       </header>
 
       <div class="sub-view-content">
         <section class="card settings-group">
           <div class="menu-list-row">
-            <span class="menu-label">Modello</span>
+            <span class="menu-label" data-i18n="info.model">Modello</span>
             <span class="setting-value-text" id="info-device-model">Tapo L535</span>
           </div>
           <div class="menu-divider"></div>
 
           <div class="menu-list-row">
-            <span class="menu-label">Tipo Dispositivo</span>
-            <span class="setting-value-text">Lampadina Smart Multicolor</span>
+            <span class="menu-label" data-i18n="info.type">Tipo Dispositivo</span>
+            <span class="setting-value-text" data-i18n="info.typeValue">Lampadina Smart Multicolor</span>
           </div>
           <div class="menu-divider"></div>
 
           <div class="menu-list-row">
-            <span class="menu-label">Indirizzo IP</span>
-            <span class="setting-value-text" id="info-device-ip">192.168.0.5</span>
+            <span class="menu-label" data-i18n="info.ip">Indirizzo IP</span>
+            <span class="setting-value-text" id="info-device-ip">—</span>
           </div>
           <div class="menu-divider"></div>
 
           <div class="menu-list-row">
-            <span class="menu-label">Indirizzo MAC</span>
-            <span class="setting-value-text" id="info-device-mac">B0-19-21-8A-6B-D0</span>
+            <span class="menu-label" data-i18n="info.mac">Indirizzo MAC</span>
+            <span class="setting-value-text" id="info-device-mac">—</span>
           </div>
         </section>
       </div>
@@ -762,12 +762,12 @@
          ==================================================================== -->
     <div id="view-matter" class="app-view">
       <header class="sub-nav">
-        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro">
+        <button class="nav-btn btn-view-back" data-target="view-settings" aria-label="Indietro" data-i18n-aria="device.back">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <h2 class="sub-nav-title">Codice Installazione Matter</h2>
+        <h2 class="sub-nav-title" data-i18n="matter.title">Codice Installazione Matter</h2>
         <div class="nav-btn-placeholder"></div>
       </header>
 
@@ -791,8 +791,8 @@
             </div>
             <div class="matter-device-info">
               <h3 class="matter-device-model">Tapo L535</h3>
-              <p class="matter-device-alias" id="matter-device-alias">Lampadina Smart</p>
-              <p class="matter-device-mac">MAC: B0-19-21-8A-6B-D0</p>
+              <p class="matter-device-alias" id="matter-device-alias" data-i18n="device.smartBulb">Lampadina Smart</p>
+              <p class="matter-device-mac">MAC: <span id="matter-device-mac">—</span></p>
             </div>
           </div>
 
@@ -811,73 +811,18 @@
               <span class="matter-brand-text">matter</span>
             </div>
 
-            <!-- Crisp SVG QR Code for 3222-804-6472 -->
-            <div class="matter-qr-svg-wrapper">
-              <svg viewBox="0 0 160 160" width="160" height="160" class="qr-svg-canvas">
-                <rect width="160" height="160" fill="#ffffff"/>
-                <!-- Corner 1 (Top Left) -->
-                <rect x="12" y="12" width="40" height="40" fill="#000000"/>
-                <rect x="18" y="18" width="28" height="28" fill="#ffffff"/>
-                <rect x="24" y="24" width="16" height="16" fill="#000000"/>
-                
-                <!-- Corner 2 (Top Right) -->
-                <rect x="108" y="12" width="40" height="40" fill="#000000"/>
-                <rect x="114" y="18" width="28" height="28" fill="#ffffff"/>
-                <rect x="120" y="24" width="16" height="16" fill="#000000"/>
-                
-                <!-- Corner 3 (Bottom Left) -->
-                <rect x="12" y="108" width="40" height="40" fill="#000000"/>
-                <rect x="18" y="114" width="28" height="28" fill="#ffffff"/>
-                <rect x="24" y="120" width="16" height="16" fill="#000000"/>
-
-                <!-- QR Data Matrix Pattern -->
-                <rect x="60" y="14" width="8" height="8" fill="#000000"/>
-                <rect x="76" y="14" width="8" height="8" fill="#000000"/>
-                <rect x="92" y="14" width="8" height="8" fill="#000000"/>
-                <rect x="68" y="24" width="8" height="8" fill="#000000"/>
-                <rect x="84" y="24" width="8" height="8" fill="#000000"/>
-                <rect x="60" y="34" width="8" height="8" fill="#000000"/>
-                <rect x="76" y="34" width="8" height="8" fill="#000000"/>
-
-                <rect x="14" y="60" width="8" height="8" fill="#000000"/>
-                <rect x="24" y="68" width="8" height="8" fill="#000000"/>
-                <rect x="34" y="60" width="8" height="8" fill="#000000"/>
-                <rect x="44" y="68" width="8" height="8" fill="#000000"/>
-                <rect x="60" y="60" width="16" height="16" fill="#000000"/>
-                <rect x="84" y="60" width="8" height="16" fill="#000000"/>
-                <rect x="100" y="60" width="16" height="8" fill="#000000"/>
-                <rect x="124" y="60" width="8" height="8" fill="#000000"/>
-                <rect x="136" y="68" width="8" height="8" fill="#000000"/>
-
-                <rect x="60" y="84" width="8" height="8" fill="#000000"/>
-                <rect x="76" y="84" width="16" height="8" fill="#000000"/>
-                <rect x="100" y="84" width="8" height="16" fill="#000000"/>
-                <rect x="116" y="84" width="16" height="8" fill="#000000"/>
-                <rect x="140" y="84" width="8" height="8" fill="#000000"/>
-
-                <rect x="60" y="108" width="8" height="8" fill="#000000"/>
-                <rect x="76" y="108" width="8" height="16" fill="#000000"/>
-                <rect x="92" y="108" width="16" height="8" fill="#000000"/>
-                <rect x="116" y="108" width="8" height="8" fill="#000000"/>
-                <rect x="132" y="108" width="16" height="16" fill="#000000"/>
-
-                <rect x="68" y="128" width="16" height="8" fill="#000000"/>
-                <rect x="92" y="128" width="8" height="8" fill="#000000"/>
-                <rect x="108" y="128" width="16" height="16" fill="#000000"/>
-                <rect x="60" y="138" width="8" height="8" fill="#000000"/>
-                <rect x="80" y="138" width="8" height="8" fill="#000000"/>
-              </svg>
-            </div>
+            <!-- QR placeholder -->
+            <div class="matter-qr-svg-wrapper"><span class="matter-qr-placeholder" data-i18n="matter.qrUnavailable">QR non disponibile</span></div>
 
             <!-- Code String -->
-            <div class="matter-code-number">3222-804-6472</div>
+            <div class="matter-code-number" id="matter-code-number">—</div>
           </div>
 
           <!-- Copia Codice Button -->
-          <button class="matter-copy-pill-btn" id="btn-copy-matter-code">Copia Codice</button>
+          <button class="matter-copy-pill-btn" id="btn-copy-matter-code" data-i18n="matter.copy">Copia Codice</button>
         </div>
 
-        <p class="matter-bottom-expl">Scansiona questo codice QR per collegare il tuo dispositivo ad altri ecosistemi tramite Matter. Le funzionalità possono variare in base al supporto di una piattaforma per Matter.<br>Per saperne di più su Matter, tocca <span class="text-blue">Qui</span>.</p>
+        <p class="matter-bottom-expl">Scansiona questo codice QR per collegare il tuo dispositivo ad altri ecosistemi tramite Matter. Le funzionalità possono variare in base al supporto di una piattaforma per Matter.<br><span data-i18n="matter.learn">Per saperne di più su Matter, tocca</span> <span class="text-blue" data-i18n="matter.here">Qui</span>.</p>
 
         <!-- Salva Codice QR Button -->
         <button class="dark-pill-action-btn mt-20" id="btn-save-matter-qr">
@@ -886,7 +831,7 @@
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
           </svg>
-          <span>Salva Codice QR</span>
+          <span data-i18n="matter.saveQr">Salva Codice QR</span>
         </button>
       </div>
     </div><!-- End #view-matter -->
@@ -897,13 +842,13 @@
          ==================================================================== -->
     <div id="view-manage-presets" class="app-view">
       <header class="sub-nav preset-list-nav">
-        <button class="nav-btn btn-view-back" data-target="view-main" aria-label="Indietro">
+        <button class="nav-btn btn-view-back" data-target="view-main" aria-label="Indietro" data-i18n-aria="device.back">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <h2 class="sub-nav-title">Preset</h2>
-        <button class="nav-text-btn" id="btn-preset-riordina">Riordina</button>
+        <h2 class="sub-nav-title" data-i18n="common.preset">Preset</h2>
+        <button class="nav-text-btn" id="btn-preset-riordina" data-i18n="presets.reorder">Riordina</button>
       </header>
 
       <div class="sub-view-content">
@@ -917,7 +862,7 @@
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
-            <span>Nuovo Preset</span>
+            <span data-i18n="presets.new">Nuovo Preset</span>
           </button>
         </div>
       </div>
@@ -930,22 +875,22 @@
     <div id="view-edit-preset" class="app-view">
       <header class="sub-nav edit-preset-nav">
         <div class="nav-placeholder"></div>
-        <h2 class="sub-nav-title">Edita Preset</h2>
-        <button class="nav-text-btn font-semibold" id="btn-edit-preset-done">Fatto</button>
+        <h2 class="sub-nav-title" data-i18n="presets.edit">Edita Preset</h2>
+        <button class="nav-text-btn font-semibold" id="btn-edit-preset-done" data-i18n="presets.done">Fatto</button>
       </header>
 
       <div class="sub-view-content">
         <!-- Color indicator card -->
         <div class="card edit-preset-color-card">
           <!-- Label + current color/temp -->
-          <div class="edit-preset-color-label" id="edit-preset-color-label">Colore</div>
+          <div class="edit-preset-color-label" id="edit-preset-color-label" data-i18n="app.color">Colore</div>
           <div class="edit-preset-color-row">
             <div class="edit-preset-swatch" id="edit-preset-swatch"></div>
             <div class="edit-preset-color-value-wrap" id="edit-preset-color-value-wrap">
               <span class="edit-preset-hash" id="edit-preset-hash"># </span>
-              <input type="text" id="edit-preset-hex-input" class="edit-preset-hex-input" maxlength="6" value="FF00FF" spellcheck="false" autocomplete="off" autocapitalize="characters" aria-label="Codice esadecimale colore">
+              <input type="text" id="edit-preset-hex-input" class="edit-preset-hex-input" maxlength="6" value="FF00FF" spellcheck="false" autocomplete="off" autocapitalize="characters" aria-label="Codice esadecimale colore" data-i18n-aria="aria.hex">
               <div class="edit-preset-temp-wrap hidden" id="edit-preset-temp-wrap">
-                <input type="number" id="edit-preset-temp-input" class="edit-preset-temp-input" min="2500" max="6500" step="50" value="2700" aria-label="Temperatura colore Kelvin">
+                <input type="number" id="edit-preset-temp-input" class="edit-preset-temp-input" min="2500" max="6500" step="50" value="2700" aria-label="Temperatura colore Kelvin" data-i18n-aria="aria.kelvin">
                 <span class="edit-preset-temp-unit">K</span>
               </div>
             </div>
@@ -953,8 +898,8 @@
 
           <!-- Luce Bianca / Colore tab switcher -->
           <div class="edit-preset-tabs">
-            <button class="edit-preset-tab" id="ep-tab-white" type="button">Luce Bianca</button>
-            <button class="edit-preset-tab active" id="ep-tab-color" type="button">Colore</button>
+            <button class="edit-preset-tab" id="ep-tab-white" type="button" data-i18n="presets.whiteLight">Luce Bianca</button>
+            <button class="edit-preset-tab active" id="ep-tab-color" type="button" data-i18n="app.color">Colore</button>
           </div>
 
           <!-- Color Wheel (shown for color mode, Image 2) -->
@@ -977,7 +922,7 @@
         <!-- Brightness Card -->
         <div class="card edit-preset-brightness-card">
           <div class="edit-preset-bright-header">
-            <span class="edit-preset-bright-title">Luminosità</span>
+            <span class="edit-preset-bright-title" data-i18n="app.brightness">Luminosità</span>
             <span class="edit-preset-bright-value" id="ep-brightness-label">100%</span>
           </div>
           <div class="ep-brightness-slider-wrapper" id="ep-brightness-wrapper">
@@ -985,7 +930,7 @@
               <div class="ep-brightness-fill" id="ep-brightness-fill" style="width: 100%;"></div>
               <div class="ep-brightness-thumb" id="ep-brightness-thumb" style="left: 100%;"></div>
             </div>
-            <input type="range" id="ep-brightness-input" min="1" max="100" value="100" class="accessible-range" aria-label="Regola luminosità preset">
+            <input type="range" id="ep-brightness-input" min="1" max="100" value="100" class="accessible-range" aria-label="Regola luminosità preset" data-i18n-aria="presets.brightnessAria">
           </div>
         </div>
 
@@ -997,7 +942,7 @@
             <line x1="10" y1="11" x2="10" y2="17"></line>
             <line x1="14" y1="11" x2="14" y2="17"></line>
           </svg>
-          <span>Elimina Preset</span>
+          <span data-i18n="presets.deleteBtn">Elimina Preset</span>
         </button>
       </div>
     </div><!-- End #view-edit-preset -->
@@ -1011,18 +956,18 @@
         <div class="modal-drag-bar"></div>
         <div class="modal-header">
           <div class="modal-heading">
-            <button class="modal-back-btn hidden" id="btn-back-preset-list" type="button" aria-label="Torna ai preset">&lsaquo;</button>
-            <h3 class="modal-title" id="modal-preset-title">Mio Preset</h3>
+            <button class="modal-back-btn hidden" id="btn-back-preset-list" type="button" aria-label="Torna ai preset" data-i18n-aria="presets.backAria">&lsaquo;</button>
+            <h3 class="modal-title" id="modal-preset-title" data-i18n="presets.title">Mio Preset</h3>
           </div>
-          <button class="modal-new-btn" id="btn-new-preset" type="button">Nuovo</button>
-          <button class="modal-close-btn" id="btn-close-preset-modal" aria-label="Chiudi">&times;</button>
+          <button class="modal-new-btn" id="btn-new-preset" type="button" data-i18n="presets.newShort">Nuovo</button>
+          <button class="modal-close-btn" id="btn-close-preset-modal" aria-label="Chiudi" data-i18n-aria="common.close">&times;</button>
         </div>
 
         <div class="modal-body">
           <div id="modal-presets-list-view">
-            <div class="modal-section-label">I tuoi preset personalizzati</div>
+            <div class="modal-section-label" data-i18n="presets.yours">I tuoi preset personalizzati</div>
             <div id="modal-custom-presets-list" class="modal-custom-presets-list">
-              <span class="modal-no-presets-hint" id="modal-no-presets-hint">Nessun preset personalizzato ancora.</span>
+              <span class="modal-no-presets-hint" id="modal-no-presets-hint" data-i18n="presets.customEmpty">Nessun preset personalizzato ancora.</span>
             </div>
             <button class="modal-clear-btn" id="btn-clear-all-presets">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
@@ -1034,13 +979,13 @@
           </div>
 
           <div id="modal-preset-editor-view" class="hidden">
-          <div class="modal-section-label" id="modal-editor-label">Crea un nuovo preset</div>
+          <div class="modal-section-label" id="modal-editor-label" data-i18n="presets.createNew">Crea un nuovo preset</div>
 
           <!-- Live Swatch Preview -->
           <div class="custom-preset-preview-wrap">
             <div class="custom-preset-preview-circle" id="modal-swatch-preview"></div>
             <div class="custom-preset-preview-details">
-              <span class="preview-mode-tag" id="modal-preset-tag">Colore HSV</span>
+              <span class="preview-mode-tag" id="modal-preset-tag" data-i18n="presets.hsv">Colore HSV</span>
               <span class="preview-val-text" id="modal-preset-val-text">Tonalità: 180°</span>
             </div>
           </div>
@@ -1050,32 +995,32 @@
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
             </svg>
-            <span>Copia stato attuale della luce</span>
+            <span data-i18n="presets.copyCurrent">Copia stato attuale della luce</span>
           </button>
 
           <!-- Type Selector: Colore vs Bianco -->
           <div class="segmented-control mt-16">
-            <button class="seg-btn active" id="modal-tab-color" type="button">Colore Arcobaleno</button>
-            <button class="seg-btn" id="modal-tab-white" type="button">Tonalità Bianca (Kelvin)</button>
+            <button class="seg-btn active" id="modal-tab-color" type="button" data-i18n="presets.color">Colore Arcobaleno</button>
+            <button class="seg-btn" id="modal-tab-white" type="button" data-i18n="presets.white">Tonalità Bianca (Kelvin)</button>
           </div>
 
           <!-- Interactive Sliders in Modal -->
           <div class="modal-slider-box" id="modal-box-color">
-            <label class="modal-slider-label">Tonalità di Colore (0° - 360°)</label>
+            <label class="modal-slider-label" data-i18n="presets.colorRange">Tonalità di Colore (0° - 360°)</label>
             <input type="range" id="modal-color-slider" min="0" max="360" value="180" class="rainbow-range-slider">
           </div>
 
           <div class="modal-slider-box hidden" id="modal-box-white">
-            <label class="modal-slider-label">Temperatura di Colore (2500K - 6500K)</label>
+            <label class="modal-slider-label" data-i18n="presets.tempRange">Temperatura di Colore (2500K - 6500K)</label>
             <input type="range" id="modal-white-slider" min="2500" max="6500" value="3200" class="temp-range-slider">
           </div>
 
           <div class="modal-input-field">
-            <label for="modal-preset-name">Nome Preset (Opzionale)</label>
-            <input type="text" id="modal-preset-name" placeholder="Es. Relax, Lettura, Cinema..." maxlength="20">
+            <label for="modal-preset-name" data-i18n="presets.name">Nome Preset (Opzionale)</label>
+            <input type="text" id="modal-preset-name" placeholder="Es. Relax, Lettura, Cinema..." maxlength="20" data-i18n-placeholder="presets.namePlaceholder">
           </div>
 
-          <button class="modal-confirm-btn" id="btn-save-custom-preset">Aggiungi a Mio Preset</button>
+          <button class="modal-confirm-btn" id="btn-save-custom-preset" data-i18n="presets.add">Aggiungi a Mio Preset</button>
           </div>
         </div>
       </div>

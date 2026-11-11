@@ -35,7 +35,7 @@
     pendingLocation: null,
 
     // Local Persistent Settings (Customizations)
-    deviceName: localStorage.getItem('tapo_device_name') || 'Lampadina Smart',
+    deviceName: localStorage.getItem('tapo_device_name') || '',
     deviceLocation: localStorage.getItem('tapo_device_location') || 'Camera da letto',
     deviceIcon: localStorage.getItem('tapo_device_icon') || 'bulb',
     defaultOnState: localStorage.getItem('tapo_default_on') || 'last-on',
@@ -445,19 +445,20 @@
   async function fetchDeviceInfo() {
     const data = await fetchApi('/api/info');
     if (!data) return;
-    const modelEl = document.getElementById('info-device-model');
-    const ipEl = document.getElementById('info-device-ip');
-    const macEl = document.getElementById('info-device-mac');
-    const hwEl = document.getElementById('info-device-hw');
-    const rssiEl = document.getElementById('info-device-rssi');
-
-    if (modelEl && data.model) modelEl.textContent = data.model;
-    if (ipEl && data.host) ipEl.textContent = data.host;
-    if (macEl && data.mac) macEl.textContent = data.mac;
-    if (hwEl && data.hw_version) hwEl.textContent = data.hw_version;
-    if (rssiEl && typeof data.rssi === 'number') {
-      rssiEl.textContent = `${data.rssi} dBm (${data.rssi > -60 ? 'Eccellente' : 'Buono'})`;
-    }
+    const setText = (id, value) => {
+      const node = document.getElementById(id);
+      if (node) node.textContent = (value === null || value === undefined || value === '') ? '—' : value;
+    };
+    state.matterCode = data.matter_code || '';
+    setText('info-device-model', data.model);
+    setText('info-device-ip', data.host);
+    setText('info-device-mac', data.mac);
+    setText('matter-device-mac', data.mac);
+    setText('info-device-hw', data.hw_version);
+    setText('matter-code-number', state.matterCode || t('matter.notConfigured'));
+    setText('info-device-rssi', typeof data.rssi === 'number'
+      ? `${data.rssi} dBm (${data.rssi > -60 ? t('info.rssiExcellent') : t('info.rssiGood')})`
+      : t('info.unavailable'));
   }
 
   function startUserInteraction() {
@@ -777,7 +778,7 @@
     if (state.presets.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'preset-manage-empty-hint';
-      empty.textContent = 'Nessun preset. Tocca "Nuovo Preset" qui sotto per aggiungerne uno.';
+      empty.textContent = t('presets.empty');
       card.appendChild(empty);
       return;
     }
@@ -1010,7 +1011,7 @@
     const isColor = state.editPresetType === 'color';
 
     if (isColor) {
-      if (el.editPresetColorLabel) el.editPresetColorLabel.textContent = 'Colore';
+      if (el.editPresetColorLabel) el.editPresetColorLabel.textContent = t('app.color');
       if (el.editPresetHash) el.editPresetHash.classList.remove('hidden');
       if (el.editPresetHexInput) {
         el.editPresetHexInput.classList.remove('hidden');
@@ -1034,7 +1035,7 @@
         el.epWheelThumb.style.backgroundColor = colorStr;
       }
     } else {
-      if (el.editPresetColorLabel) el.editPresetColorLabel.textContent = 'Temperatura Colore';
+      if (el.editPresetColorLabel) el.editPresetColorLabel.textContent = t('labels.colorTemperature');
       if (el.editPresetHash) el.editPresetHash.classList.add('hidden');
       if (el.editPresetHexInput) el.editPresetHexInput.classList.add('hidden');
       if (el.editPresetTempWrap) el.editPresetTempWrap.classList.remove('hidden');
@@ -1274,7 +1275,7 @@
     state.customPresets.forEach((preset, index) => {
       const btn = document.createElement('button');
       btn.className = 'preset-item';
-      btn.title = preset.name || (preset.type === 'color' ? `Colore ${preset.hue}°` : `Bianco ${preset.temp}K`);
+      btn.title = preset.name || (preset.type === 'color' ? `${t('app.color')} ${preset.hue}°` : `Bianco ${preset.temp}K`);
 
       if (preset.type === 'color') {
         btn.dataset.type = 'color';
@@ -1291,11 +1292,11 @@
       let pressTimer;
       btn.addEventListener('pointerdown', () => {
         pressTimer = setTimeout(() => {
-          if (confirm(`Eliminare il preset "${btn.title}"?`)) {
+          if (confirm(t('dialogs.deletePreset', { name: btn.title }))) {
             state.customPresets.splice(index, 1);
             localStorage.setItem('tapo_custom_presets', JSON.stringify(state.customPresets));
             renderCustomPresets();
-            showToast('Preset rimosso');
+            showToast(t('presets.removed'));
           }
         }, 800);
       });
@@ -1345,7 +1346,7 @@
       }
       const label = document.createElement('span');
       label.className = 'modal-preset-name';
-      label.textContent = `${preset.name} | ${preset.type === 'color' ? 'Colore' : `${preset.temp}K`}`;
+      label.textContent = `${preset.name} | ${preset.type === 'color' ? t('app.color') : `${preset.temp}K`}`;
       content.append(swatch, label);
       row.appendChild(content);
       row.addEventListener('click', () => {
@@ -1385,19 +1386,19 @@
 
         const label = document.createElement('span');
         label.className = 'modal-preset-name';
-        label.textContent = preset.name || (preset.type === 'color' ? `Colore ${preset.hue}°` : `Bianco ${preset.temp}K`);
+        label.textContent = preset.name || (preset.type === 'color' ? `${t('app.color')} ${preset.hue}°` : `Bianco ${preset.temp}K`);
 
         const delBtn = document.createElement('button');
         delBtn.className = 'modal-preset-del-btn';
-        delBtn.setAttribute('aria-label', 'Elimina preset');
-        delBtn.textContent = 'Elimina';
+        delBtn.setAttribute('aria-label', t('presets.delete'));
+        delBtn.textContent = t('common.delete');
         delBtn.addEventListener('click', (event) => {
           event.stopPropagation();
           state.customPresets.splice(index, 1);
           localStorage.setItem('tapo_custom_presets', JSON.stringify(state.customPresets));
           renderCustomPresets();
           renderModalPresetList();
-          showToast('Preset eliminato');
+          showToast(t('presets.deleted'));
         });
 
         const content = document.createElement('div');
@@ -1452,7 +1453,7 @@
     el.modalEditorView?.classList.add('hidden');
     el.btnBackPresetList?.classList.add('hidden');
     if (el.btnNewPreset) el.btnNewPreset.classList.remove('hidden');
-    if (el.modalPresetTitle) el.modalPresetTitle.textContent = 'Mio Preset';
+    if (el.modalPresetTitle) el.modalPresetTitle.textContent = t('presets.title');
     renderModalPresetList();
   }
 
@@ -1477,9 +1478,9 @@
     el.modalEditorView?.classList.remove('hidden');
     el.btnBackPresetList?.classList.remove('hidden');
     el.btnNewPreset?.classList.add('hidden');
-    if (el.modalPresetTitle) el.modalPresetTitle.textContent = preset ? 'Modifica Preset' : 'Nuovo Preset';
-    if (el.modalEditorLabel) el.modalEditorLabel.textContent = preset ? 'Impostazioni preset' : 'Crea un nuovo preset';
-    if (el.btnSaveCustomPreset) el.btnSaveCustomPreset.textContent = preset ? 'Salva modifiche' : 'Aggiungi a Mio Preset';
+    if (el.modalPresetTitle) el.modalPresetTitle.textContent = preset ? t('presets.modalEdit') : t('presets.new');
+    if (el.modalEditorLabel) el.modalEditorLabel.textContent = preset ? t('presets.settings') : t('presets.createNew');
+    if (el.btnSaveCustomPreset) el.btnSaveCustomPreset.textContent = preset ? t('presets.saveChanges') : t('presets.add');
     updateModalSwatch();
   }
 
@@ -1487,13 +1488,13 @@
     if (state.modalPresetType === 'color') {
       const hue = state.modalHue;
       el.modalSwatchPreview.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
-      el.modalPresetTag.textContent = 'Colore HSV';
-      el.modalPresetValText.textContent = `Tonalità: ${hue}°`;
+      el.modalPresetTag.textContent = t('presets.hsv');
+      el.modalPresetValText.textContent = t('presets.hueValue', { value: hue });
     } else {
       const temp = state.modalTemp;
       const rgb = kelvinToRgb(temp);
       el.modalSwatchPreview.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
-      el.modalPresetTag.textContent = 'Luce Bianca (Kelvin)';
+      el.modalPresetTag.textContent = t('presets.whiteKelvin');
       el.modalPresetValText.textContent = `Temperatura: ${temp}K`;
     }
   }
@@ -1670,7 +1671,7 @@
     }
     // Default bulb
     return isHero ? `
-      <svg id="hero-bulb-svg" class="hero-bulb-svg" viewBox="0 0 160 210" aria-label="Lampadina">
+      <svg id="hero-bulb-svg" class="hero-bulb-svg" viewBox="0 0 160 210" aria-label="${t('aria.bulb')}">
         <defs>
           <radialGradient id="bulb-glass-gradient" cx="45%" cy="35%" r="65%">
             <stop offset="0%" stop-color="var(--bulb-inner-light, #fed776)"/>
@@ -1716,12 +1717,19 @@
     }
   }
 
+  const LOCATION_KEYS = { 'Camera da letto': 'locations.bedroom', 'Soggiorno': 'locations.livingRoom', 'Cucina': 'locations.kitchen', 'Studio': 'locations.studio' };
+  function locationLabel(loc) { return LOCATION_KEYS[loc] ? t(LOCATION_KEYS[loc]) : loc; }
+  function deviceDisplayName() {
+    const n = (state.deviceName || '').trim();
+    return (!n || n === 'Lampadina Smart' || n === 'Smart Bulb') ? t('device.smartBulb') : n;
+  }
+
   function applyDeviceCustomizations() {
     // 0. Render Device Icon both in Hero Home and in Settings Thumb
     renderDeviceIcon(state.deviceIcon || 'bulb');
 
     // 1. Name
-    const name = state.deviceName || 'Lampadina Smart';
+    const name = deviceDisplayName();
     if (el.heroDeviceName) {
       el.heroDeviceName.innerHTML = name.replace(' ', '<br>');
     }
@@ -1730,8 +1738,7 @@
 
     // 2. Location
     const loc = state.deviceLocation || 'Camera da letto';
-    const locationLabels = { 'Camera da letto': 'Bedroom', 'Soggiorno': 'Living room', 'Cucina': 'Kitchen', 'Studio': 'Studio' };
-    const displayedLocation = state.language === 'en' ? (locationLabels[loc] || loc) : loc;
+    const displayedLocation = locationLabel(loc);
     if (el.heroDeviceLocation) el.heroDeviceLocation.textContent = displayedLocation;
     if (el.settingValueLocation) el.settingValueLocation.textContent = displayedLocation;
 
@@ -1759,17 +1766,6 @@
 
   // ==========================================================================
   // Language and deferred settings changes
-  const translationPairs = [
-    ['Impostazioni Dispositivo', 'Device Settings'], ['Nome Dispositivo', 'Device Name'], ['Lingua', 'Language'], ['Posizione', 'Location'], ['Informazioni Dispositivo', 'Device Information'],
-    ['Italiano', 'Italian'], ['Inglese', 'English'], ['English', 'English'], ['Salva', 'Save'], ['Indietro', 'Back'], ['Personalizza', 'Custom'], ['Inserisci stanza...', 'Enter room...'],
-    ['Luminosità', 'Brightness'], ['Bianco', 'White'], ['Colore', 'Color'], ['Mio Preset', 'My Presets'], ['Gestisci preset', 'Manage presets'], ['Accensione', 'Power'], ['Lampadina', 'Bulb'], ['Regola luminosità', 'Adjust brightness'], ['Regola temperatura colore', 'Adjust color temperature'], ['Regola tonalità colore', 'Adjust color hue'], ['Accendi o spegni la lampadina', 'Turn the bulb on or off'], ['Camera da letto', 'Bedroom'], ['Soggiorno', 'Living room'], ['Cucina', 'Kitchen'], ['Studio', 'Studio'], ['Impostazioni', 'Settings'], ['Salva', 'Save'], ['Aggiungi', 'Add'], ['Annulla', 'Cancel'], ['Conferma', 'Confirm'], ['Tonalità', 'Hue'], ['Temperatura', 'Temperature'], ['Colore HSV', 'HSV Color'], ['Tonalità: 180°', 'Hue: 180°'], ['Personalizzata', 'Custom'], ['Ultimo stato "On"', 'Last "On" state'], ['Accendi', 'Turn on'], ['Spegni', 'Turn off'], ['Accensione/spegnimento graduale dell...', 'Gradual turn on/off...'], ['Luce accesa gradualmente', 'Turn on gradually'], ['Luce spenta gradualmente', 'Turn off gradually'], ['Quando l\'alimentazione si interrompe ma ritorna, vuoi che il dispositivo Tapo:', 'When power is interrupted and returns, should the Tapo device:'], ['Informazioni', 'Information'], ['Party', 'Party'], ['Tema', 'Theme'], ['Power', 'Power'], ['Lampadina', 'Bulb'], ['Gestisci preset', 'Manage presets'], ['Accensione', 'Power'], ['Dispositivo spento', 'Device switched off'], ['Accendi la lampadina per usare i controlli colore.', 'Turn on the bulb to use color controls.'], ['La lampadina è offline o non raggiungibile.', 'The bulb is offline or unreachable.'], ['Preset rimosso', 'Preset removed'], ['Preset eliminato', 'Preset deleted'], ['Impostazione luce copiata!', 'Light setting copied!'], ['Nuovo preset aggiunto a "Mio Preset"!', 'New preset added to "My Presets"!'], ['Preset modificato', 'Preset updated'], ['Nessun preset personalizzato ancora.', 'No custom presets yet.'], ['Elimina tutti i preset', 'Delete all presets'], ['Tonalità di Colore (0° - 360°)', 'Color Hue (0° - 360°)'], ['Temperatura di Colore (2500K - 6500K)', 'Color Temperature (2500K - 6500K)'], ['Colore Arcobaleno', 'Rainbow Color'], ['Tonalità Bianca (Kelvin)', 'White Temperature (Kelvin)'], ['Copia stato attuale della luce', 'Copy current light state'], ['Aggiungi a Mio Preset', 'Add to My Presets'], ['Nessun preset. Tocca "Nuovo Preset" qui sotto per aggiungerne uno.', 'No presets. Tap "New Preset" below to add one.'], ['Elimina preset', 'Delete preset'], ['Elimina', 'Delete'], ['Nuovo Preset', 'New Preset'], ['Riordina', 'Reorder'], ['Fatto', 'Done'], ['Modifica non salvata', 'Unsaved change'], ['Seleziona Icona Dispositivo', 'Select Device Icon'], ['Icona salvata e aggiornata nella schermata Home!', 'Icon saved and updated on the Home screen!'], ['Preset salvato', 'Preset saved'], ['Ordine preset salvato', 'Preset order saved'], ['Nome del vostro dispositivo', 'Your device name'], ['Dai un nome al tuo dispositivo per facilitarne l\'identificazione.', 'Name your device to make it easier to identify.'], ['Nome dispositivo', 'Device name'], ['Inserisci stanza...', 'Enter room...'], ['Personalizza', 'Custom'], ['Lingua salvata', 'Language saved'], ['Posizione salvata', 'Location saved'], ['Impostazioni Dispositivo', 'Device Settings'], ['Nome Dispositivo', 'Device Name'], ['Lingua', 'Language'], ['Posizione', 'Location'], ['Informazioni Dispositivo', 'Device Information'], ['Italiano', 'Italian'], ['Inglese', 'English'], ['English', 'English'], ['Salva', 'Save'], ['Indietro', 'Back'], ['Posizione', 'Location'], ['Lingua', 'Language'], ['Nome', 'Name'], ['Dispositivo', 'Device'], ['Preset', 'Preset'], ['Mio', 'My'], ['Bianco', 'White'], ['Colore', 'Color'], ['Luminosità', 'Brightness'], ['Power', 'Power'], ['Accensione', 'Power'], ['Camera da letto', 'Bedroom'], ['Soggiorno', 'Living room'], ['Cucina', 'Kitchen'], ['Studio', 'Studio'], ['Lampadina Smart', 'Smart Bulb'], ['Accendi o spegni la lampadina', 'Turn the bulb on or off'], ['Regola luminosità', 'Adjust brightness'], ['Regola temperatura colore', 'Adjust color temperature'], ['Regola tonalità colore', 'Adjust color hue'], ['Lampadina', 'Bulb'], ['Dispositivo non connesso', 'Device not connected'], ['Connessione persa', 'Connection lost'], ['Nessun preset. Tocca "Nuovo Preset" qui sotto per aggiungerne uno.', 'No presets. Tap "New Preset" below to add one.'], ['Tonalità di Colore (0° - 360°)', 'Color Hue (0° - 360°)'], ['Temperatura di Colore (2500K - 6500K)', 'Color Temperature (2500K - 6500K)'], ['Colore Arcobaleno', 'Rainbow Color'], ['Tonalità Bianca (Kelvin)', 'White Temperature (Kelvin)'], ['Copia stato attuale della luce', 'Copy current light state'], ['Aggiungi a Mio Preset', 'Add to My Presets'], ['Nessun preset personalizzato ancora.', 'No custom presets yet.'], ['Elimina tutti i preset', 'Delete all presets'],
-    ['Dispositivo non connesso', 'Device not connected'], ['Connessione persa', 'Connection lost'], ['Camera da letto', 'Bedroom'], ['Soggiorno', 'Living room'], ['Cucina', 'Kitchen'],
-    ['Nome del vostro dispositivo', 'Your device name'], ['Dai un nome al tuo dispositivo per facilitarne l\'identificazione.', 'Name your device to make it easier to identify.'],
-    ['Modifica non salvata', 'Unsaved change'], ['Seleziona Icona Dispositivo', 'Select Device Icon'], ['Preset salvato', 'Preset saved'], ['Ordine preset salvato', 'Preset order saved'],
-    ['Elimina preset', 'Delete preset'], ['Elimina', 'Delete'], ['Nuovo Preset', 'New Preset'], ['Riordina', 'Reorder'], ['Fatto', 'Done'], ['Copia stato attuale della luce', 'Copy current light state'],
-    ['Aggiungi a Mio Preset', 'Add to My Presets'], ['Nessun preset personalizzato ancora.', 'No custom presets yet.'], ['Elimina tutti i preset', 'Delete all presets']
-  ];
-
   function translateUi(language) {
     state.language = language === 'en' ? 'en' : (language === 'xx' ? 'xx' : 'it');
     if (typeof window.setLanguage === 'function') window.setLanguage(state.language);
@@ -1815,7 +1811,7 @@
           const hasUnsavedLocation = currentView === 'view-location' && (state.pendingLocation !== state.deviceLocation || Boolean(el.inputCustomLocation?.value.trim()));
           const hasUnsavedLanguage = currentView === 'view-language' && state.pendingLanguage !== state.language;
           if (hasUnsavedLocation || hasUnsavedLanguage) {
-            showToast(state.language === 'en' ? 'Unsaved change' : 'Modifica non salvata');
+            showToast(t('device.unsaved'));
           }
           discardPendingSettings();
         }
@@ -1876,12 +1872,12 @@
     }
     if (el.settingRowFirmware) {
       el.settingRowFirmware.addEventListener('click', () => {
-        showToast("La verifica e l'aggiornamento firmware sono gestiti dall'app ufficiale Tapo.");
+        showToast(t('toast.firmware'));
       });
     }
     if (el.rowShareDevice) {
       el.rowShareDevice.addEventListener('click', () => {
-        showToast("La condivisione dispositivi Tapo Cloud è configurabile tramite l'app ufficiale.");
+        showToast(t('toast.sharing'));
       });
     }
 
@@ -1902,7 +1898,7 @@
       el.btnSaveIcon.addEventListener('click', () => {
         localStorage.setItem('tapo_device_icon', state.deviceIcon);
         applyDeviceCustomizations();
-        showToast('Icona salvata e aggiornata nella schermata Home!');
+        showToast(t('device.iconSaved'));
         showView('view-settings', false);
       });
     }
@@ -1922,7 +1918,7 @@
           state.deviceName = newName;
           localStorage.setItem('tapo_device_name', newName);
           applyDeviceCustomizations();
-          showToast('Nome salvato');
+          showToast(t('toast.nameSaved'));
           showView('view-settings', false);
         }
       });
@@ -1966,7 +1962,7 @@
         localStorage.setItem('tapo_device_location', state.deviceLocation);
         applyDeviceCustomizations();
         translateUi(state.language);
-        showToast(state.language === 'en' ? 'Location saved' : 'Posizione salvata');
+        showToast(t('device.locationSaved'));
         showView('view-settings', false);
       });
     }
@@ -1981,7 +1977,7 @@
         renderManagePresetsList();
         renderCustomPresets();
         translateUi(state.language);
-        showToast(state.language === 'en' ? 'Language saved' : 'Lingua salvata');
+        showToast(t('device.languageSaved'));
         showView('view-settings', false);
       });
     }
@@ -2000,7 +1996,7 @@
           localStorage.setItem('tapo_default_recovery', val);
         }
         applyDeviceCustomizations();
-        showToast('Preferenza salvata');
+        showToast(t('toast.prefSaved'));
       });
     });
 
@@ -2023,11 +2019,11 @@
     // 9. Subview: Groups & Smart Actions Placeholders
     if (el.btnAddGroup) {
       el.btnAddGroup.addEventListener('click', () => {
-        showToast("I gruppi di dispositivi sono sincronizzati tramite l'app ufficiale Tapo.");
+        showToast(t('toast.groups'));
       });
     }
     if (el.btnAddSmartAction || el.btnShortcutMenu) {
-      const handler = () => showToast("Le automazioni smart avanzate sono configurabili nell'app ufficiale Tapo.");
+      const handler = () => showToast(t('toast.automations'));
       if (el.btnAddSmartAction) el.btnAddSmartAction.addEventListener('click', handler);
       if (el.btnShortcutMenu) el.btnShortcutMenu.addEventListener('click', handler);
     }
@@ -2046,19 +2042,18 @@
     // 10. Subview: Matter Code Actions
     if (el.btnCopyMatterCode) {
       el.btnCopyMatterCode.addEventListener('click', async () => {
+        if (!state.matterCode) { showToast(t('matter.notConfigured')); return; }
         try {
-          await navigator.clipboard.writeText('3222-804-6472');
-          showToast('Codice Matter copiato negli appunti!');
+          await navigator.clipboard.writeText(state.matterCode);
+          showToast(t('dialogs.matterCopy'));
         } catch (_) {
-          showToast('Codice Matter: 3222-804-6472');
+          showToast(t('dialogs.matterFallback', { code: state.matterCode }));
         }
       });
     }
 
     if (el.btnSaveMatterQr) {
-      el.btnSaveMatterQr.addEventListener('click', () => {
-        showToast('Codice QR Matter pronto per il salvataggio!');
-      });
+      el.btnSaveMatterQr.addEventListener('click', () => showToast(t('matter.qrUnavailable')));
     }
 
     // 11. Hardware Controls: Power Button
@@ -2358,7 +2353,7 @@
           el.modalTabColor.click();
         }
         updateModalSwatch();
-        showToast('Impostazione luce copiata!');
+        showToast(t('toast.lightCopied'));
       });
     }
 
@@ -2375,7 +2370,7 @@
         else state.customPresets[state.modalEditingIndex] = newPreset;
         localStorage.setItem('tapo_custom_presets', JSON.stringify(state.customPresets));
         renderCustomPresets();
-        showToast(state.modalEditingIndex === null ? 'Nuovo preset aggiunto a "Mio Preset"!' : 'Preset modificato');
+        showToast(state.modalEditingIndex === null ? t('toast.presetAdded') : 'Preset modificato');
         showPresetList();
       });
     }
@@ -2385,15 +2380,15 @@
     if (btnClearAllPresets) {
       btnClearAllPresets.addEventListener('click', () => {
         if (state.customPresets.length === 0) {
-          showToast('Nessun preset personalizzato da eliminare.');
+          showToast(t('presets.noneToDelete'));
           return;
         }
-        if (confirm('Eliminare tutti i preset personalizzati?')) {
+        if (confirm(t('dialogs.deleteAll'))) {
           state.customPresets = [];
           localStorage.setItem('tapo_custom_presets', JSON.stringify(state.customPresets));
           renderCustomPresets();
           renderModalPresetList();
-          showToast('Tutti i preset eliminati.');
+          showToast(t('toast.allDeleted'));
         }
       });
     }
